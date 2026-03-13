@@ -1,9 +1,9 @@
 "use client"
 
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "./ui/button";
-import { useSession } from "next-auth/react";
 import { LogOut, UtensilsCrossed, PackageOpen, Calculator, Settings, ChefHat, BookOpen } from "lucide-react";
 import { usePathname } from "next/navigation";
 
@@ -19,6 +19,17 @@ export function Navbar() {
     { name: "Depo", href: "/inventory", icon: PackageOpen, roles: ["ADMIN", "CASHIER"] },
     { name: "Muhasebe", href: "/accounting", icon: Calculator, roles: ["ADMIN", "CASHIER"] },
   ].filter(item => !item.roles || item.roles.includes(role || ""));
+
+  const [terminalIP, setTerminalIP] = useState("...");
+
+  useEffect(() => {
+    const win = window as any;
+    if (win.electron && win.electron.getConnectivityInfo) {
+      win.electron.getConnectivityInfo().then((info: any) => {
+        setTerminalIP(`${info.ip}:${info.port}`);
+      }).catch(() => {});
+    }
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 w-full glass-panel border-b-0">
@@ -65,7 +76,7 @@ export function Navbar() {
           <div className="hidden lg:flex flex-col text-right mr-2 border-r border-white/10 pr-4">
             <span className="text-[10px] text-slate-400 uppercase tracking-widest font-medium">Terminal IP</span>
             <span className="text-xs font-mono font-bold text-primary select-all">
-              {process.env.NEXT_PUBLIC_LOCAL_IP || '127.0.0.1'}
+              {terminalIP}
             </span>
           </div>
           <div className="hidden md:flex flex-col text-right mr-2">

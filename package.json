@@ -55,7 +55,7 @@
     ],
     "publish": {
       "provider": "github",
-      "owner": "thunderelektronik",
+      "owner": "uzpos",
       "repo": "uzpos-releases"
     }
   },
