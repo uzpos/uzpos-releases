@@ -1,0 +1,144 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("WAITER") // ADMIN, WAITER, CHEF, CASHIER
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders    Order[]
+}
+
+model TableGroup {
+  id        String            @id @default(cuid())
+  name      String
+  tables    RestaurantTable[]
+}
+
+model RestaurantTable {
+  id        String      @id @default(cuid())
+  name      String
+  groupId   String
+  group     TableGroup  @relation(fields: [groupId], references: [id])
+  status    String      @default("AVAILABLE") // AVAILABLE, OCCUPIED
+  orders    Order[]
+}
+
+model Category {
+  id        String       @id @default(cuid())
+  name      String
+  type      String       // DRINK, MATERIAL, FOOD
+  products  Product[]
+}
+
+model Product {
+  id              String      @id @default(cuid())
+  name            String
+  type            String      // READY, MATERIAL, RECIPE
+  categoryId      String?
+  category        Category?    @relation(fields: [categoryId], references: [id])
+  image           String?
+  purchasePrice   Float       @default(0)
+  markup          Float       @default(0)
+  estimatedPrice  Float       @default(0)
+  finalSalePrice  Float       @default(0)
+  unit            String      // kg, piece, box, liter
+  piecesPerBox    Float       @default(1) // Number of items in one box
+  stockCount      Float       @default(0) // Total pieces in stock
+  criticalLevel   Float       @default(10)
+  orderItems      OrderItem[]
+  invoiceItems    InvoiceItem[]
+  recipesAsResult RecipeIngredient[] @relation("RecipeResult")
+  recipesAsIngred RecipeIngredient[] @relation("RecipeIngredient")
+}
+
+model InvoiceItem {
+  id        String   @id @default(cuid())
+  invoiceId String
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Float
+  basePrice Float
+  finalPrice Float
+}
+
+model RecipeIngredient {
+  id           String   @id @default(cuid())
+  recipeId     String
+  recipe       Product  @relation("RecipeResult", fields: [recipeId], references: [id])
+  materialId   String
+  material     Product  @relation("RecipeIngredient", fields: [materialId], references: [id])
+  quantity     Float
+}
+
+model Order {
+  id          String         @id @default(cuid())
+  tableId     String?
+  table       RestaurantTable? @relation(fields: [tableId], references: [id])
+  userId      String
+  user        User           @relation(fields: [userId], references: [id])
+  status      String         @default("OPEN") // OPEN, CLOSED
+  type        String         @default("TABLE") // TABLE, DIRECT
+  totalAmount Float          @default(0)
+  items       OrderItem[]
+  payments    Payment[]
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+model OrderItem {
+  id        String          @id @default(cuid())
+  orderId   String
+  order     Order           @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product         @relation(fields: [productId], references: [id])
+  quantity  Float
+  price     Float
+  status    String          @default("PENDING") // PENDING, PREPARING, READY
+}
+
+model Payment {
+  id        String        @id @default(cuid())
+  orderId   String
+  order     Order         @relation(fields: [orderId], references: [id])
+  amount    Float
+  method    String        // CASH, CREDIT
+  createdAt DateTime      @default(now())
+}
+
+model Company {
+  id            String    @id @default(cuid())
+  name          String
+  contactPerson String?
+  phone         String?
+  balance       Float     @default(0)
+  invoices      Invoice[]
+}
+
+model Invoice {
+  id          String      @id @default(cuid())
+  companyId   String
+  company     Company     @relation(fields: [companyId], references: [id])
+  totalAmount Float
+  type        String      // PURCHASE, EXPENSE
+  createdAt   DateTime    @default(now())
+  items       InvoiceItem[]
+}
+
+model Transaction {
+  id          String          @id @default(cuid())
+  amount      Float
+  type        String          // INCOME, EXPENSE
+  description String
+  date        DateTime        @default(now())
+}

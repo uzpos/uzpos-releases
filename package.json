@@ -1,0 +1,100 @@
+{
+  "name": "uzpos",
+  "version": "1.0.0",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "electron-dev": "electron .",
+    "dist": "npm run build && electron-builder"
+  },
+  "build": {
+    "appId": "com.uzpos.app",
+    "productName": "Uzpos",
+    "directories": {
+      "output": "dist_zip_final"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "public/favicon.ico",
+      "asar": true
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "files": [
+      "**/*",
+      "!node_modules/*",
+      "node_modules/@prisma/client/**/*",
+      "node_modules/prisma/**/*",
+      "node_modules/wait-on/**/*",
+      "node_modules/electron-updater/**/*",
+      "!standalone_pkg/**/*",
+      "!standalone.zip",
+      "!.next/**/*",
+      "!dist*/**/*",
+      "prisma/**/*",
+      "loading.html"
+    ],
+    "extraResources": [
+      "prisma/dev.db",
+      ".env",
+      "standalone.zip",
+      {
+        "from": ".next/static",
+        "to": "standalone_static"
+      },
+      {
+        "from": "public",
+        "to": "standalone_public"
+      }
+    ],
+    "publish": {
+      "provider": "github",
+      "owner": "thunderelektronik",
+      "repo": "uzpos-releases"
+    }
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "@radix-ui/react-dialog": "^1.1.15",
+    "@radix-ui/react-popover": "^1.1.15",
+    "bcryptjs": "^3.0.3",
+    "clsx": "^2.1.1",
+    "cmdk": "^1.1.1",
+    "electron-updater": "^6.8.3",
+    "file-saver": "^2.0.5",
+    "framer-motion": "^12.36.0",
+    "lucide-react": "^0.577.0",
+    "next": "14.2.14",
+    "next-auth": "^4.24.13",
+    "popover": "^2.4.1",
+    "react": "^18",
+    "react-dom": "^18",
+    "tailwind-merge": "^3.5.0",
+    "wait-on": "^9.0.4",
+    "xlsx": "^0.18.5",
+    "zustand": "^5.0.11"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/file-saver": "^2.0.7",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "concurrently": "^9.2.1",
+    "electron": "^41.0.2",
+    "electron-builder": "^26.8.1",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.14",
+    "postcss": "^8",
+    "prisma": "^5.22.0",
+    "tailwindcss": "^3.4.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5"
+  }
+}
