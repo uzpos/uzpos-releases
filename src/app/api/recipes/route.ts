@@ -93,6 +93,7 @@ export async function POST(req: NextRequest) {
         name,
         type: "RECIPE",
         categoryId: catId,
+        supplierId: "cmmpalmr20000diogsz1hqq23", // Default supplier for internal recipes
         purchasePrice: 0, 
         estimatedPrice: totalCost,
         finalSalePrice: Number(finalSalePrice || 0),

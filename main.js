@@ -140,6 +140,11 @@ async function createWindow() {
   });
 
   if (app.isPackaged) {
+    autoUpdater.logger = {
+      info: (m) => logDebug(`[Updater] ${m}`),
+      warn: (m) => logDebug(`[Updater] WARN: ${m}`),
+      error: (m) => logDebug(`[Updater] ERROR: ${m}`),
+    };
     autoUpdater.checkForUpdatesAndNotify();
   }
 }
