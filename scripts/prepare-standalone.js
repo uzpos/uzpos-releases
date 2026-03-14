@@ -20,9 +20,21 @@ async function prepare() {
     }
 
     try {
+        console.log('Copying static and public directories into standalone...');
+        const staticDir = path.join(root, '.next', 'static');
+        const publicDir = path.join(root, 'public');
+        const standStatic = path.join(standaloneDir, '.next', 'static');
+        const standPublic = path.join(standaloneDir, 'public');
+
+        if (fs.existsSync(staticDir)) {
+            fs.mkdirSync(standStatic, { recursive: true });
+            fs.cpSync(staticDir, standStatic, { recursive: true });
+        }
+        if (fs.existsSync(publicDir)) {
+            fs.cpSync(publicDir, standPublic, { recursive: true });
+        }
+
         console.log('Creating standalone.zip using PowerShell...');
-        // Use PowerShell to create the zip for wide compatibility on Windows
-        // We zip the contents of .next/standalone
         const command = `powershell -Command "Compress-Archive -Path '${standaloneDir}\\*' -DestinationPath '${zipPath}' -Force"`;
         execSync(command, { stdio: 'inherit' });
         console.log('standalone.zip created successfully.');

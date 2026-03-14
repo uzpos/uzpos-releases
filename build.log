@@ -1,0 +1,161 @@
+  • electron-builder  version=26.8.1 os=10.0.26200
+  • loaded configuration  file=package.json ("build" field)
+  • description is missed in the package.json  appPackageFile=C:\Users\thund\Desktop\Uzpos\Uzpos0.0\package.json
+  • author is missed in the package.json  appPackageFile=C:\Users\thund\Desktop\Uzpos\Uzpos0.0\package.json
+  • executing @electron/rebuild  electronVersion=41.0.2 arch=x64 buildFromSource=false workspaceRoot=C:\Users\thund\Desktop\Uzpos\Uzpos0.0 projectDir=./ appDir=./
+  • installing native dependencies  arch=x64
+  • completed installing native dependencies
+  • packaging       platform=win32 arch=x64 electron=41.0.2 appOutDir=dist_zip_final\win-unpacked
+  • searching for node modules  pm=npm searchDir=C:\Users\thund\Desktop\Uzpos\Uzpos0.0
+  • duplicate dependency references  dependencies=["@prisma/get-platform@5.22.0","@types/react@18.3.28","react@18.3.1","@types/react@18.3.28","react@18.3.1","@radix-ui/react-slot@1.2.3","@types/react@18.3.28","react-dom@18.3.1","react@18.3.1","@types/react@18.3.28","react@18.3.1","@types/react@18.3.28","react@18.3.1","@types/react@18.3.28","react-dom@18.3.1","react@18.3.1","@types/react@18.3.28","react@18.3.1","@radix-ui/react-slot@1.2.3","@types/react@18.3.28","react-dom@18.3.1","react@18.3.1","@types/react@18.3.28","react-dom@18.3.1","react@18.3.1","@types/react@18.3.28","react@18.3.1","@types/react@18.3.28","react@18.3.1","@radix-ui/react-slot@1.2.3","@types/react@18.3.28","react-dom@18.3.1","react@18.3.1","@types/react@18.3.28","react-dom@18.3.1","react@18.3.1","@types/react@18.3.28","react-dom@18.3.1","react@18.3.1","@radix-ui/react-slot@1.2.3","@types/react@18.3.28","react-dom@18.3.1","react@18.3.1","@types/react@18.3.28","react@18.3.1","@types/react@18.3.28","react@18.3.1","@types/react@18.3.28","react@18.3.1","@types/react@18.3.28","react-dom@18.3.1","@types/react@18.3.28","@types/react@18.3.28","react-style-singleton@2.2.3","react@18.3.1","@types/react@18.3.28","react@18.3.1","react@18.3.1","@types/react@18.3.28","react@18.3.1","@types/react@18.3.28","react@18.3.1","react@18.3.1","@radix-ui/react-dismissable-layer@1.1.11","@radix-ui/react-focus-scope@1.1.7","@radix-ui/react-id@1.1.1","react-dom@18.3.1","react@18.3.1","@radix-ui/react-slot@1.2.3","@types/react@18.3.28","react-dom@18.3.1","react@18.3.1","@types/react@18.3.28","react-dom@18.3.1","react@18.3.1","@radix-ui/react-slot@1.2.3","@types/react@18.3.28","react-dom@18.3.1","react@18.3.1","@types/react@18.3.28","react@18.3.1","@types/react@18.3.28","react@18.3.1","@types/react@18.3.28","react-dom@18.3.1","react@18.3.1","@radix-ui/react-portal@1.1.9","@radix-ui/react-presence@1.1.5","@radix-ui/react-slot@1.2.3","@types/react@18.3.28","react-dom@18.3.1","react@18.3.1","@radix-ui/react-slot@1.2.3","@radix-ui/react-use-controllable-state@1.2.2","@types/react@18.3.28","aria-hidden@1.2.6","react-dom@18.3.1","react-remove-scroll@2.7.2","react@18.3.1","@radix-ui/react-dialog@1.1.15","@radix-ui/react-id@1.1.1","@types/react@18.3.28","react@18.3.1","@types/react@18.3.28","react-dom@18.3.1","react@18.3.1","react-dom@18.3.1","react@18.3.1","react-dom@18.3.1","react@18.3.1","react@18.3.1","next@14.2.14","react-dom@18.3.1","react@18.3.1","react-dom@18.3.1","react@18.3.1","react@18.3.1","react@18.3.1","loose-envify@1.4.0","loose-envify@1.4.0","call-bind-apply-helpers@1.0.2","es-object-atoms@1.1.1","hasown@2.0.2","hasown@2.0.2","@types/react@18.3.28","react@18.3.1"]
+  • file source doesn't exist  from=C:\Users\thund\Desktop\Uzpos\Uzpos0.0\public
+  • updating asar integrity executable resource  executablePath=dist_zip_final\win-unpacked\Uzpos.exe
+  • file source doesn't exist  from=C:\Users\thund\Desktop\Uzpos\Uzpos0.0\public
+  • default Electron icon is used  reason=application icon is not set
+  • signing with signtool.exe  path=dist_zip_final\win-unpacked\Uzpos.exe
+  • building        target=nsis file=dist_zip_final\Uzpos Setup 1.0.1.exe archs=x64 oneClick=false perMachine=false
+  • signing with signtool.exe  path=dist_zip_final\win-unpacked\resources\elevate.exe
+  • signing with signtool.exe  path=dist_zip_final\Uzpos Setup 1.0.1.__uninstaller.exe
+  • signing with signtool.exe  path=dist_zip_final\Uzpos Setup 1.0.1.exe
+  • building block map  blockMapFile=dist_zip_final\Uzpos Setup 1.0.1.exe.blockmap
+  • publishing      publisher=Github (owner: uzpos, project: uzpos-releases, version: 1.0.1)
+  • uploading       file=Uzpos-Setup-1.0.1.exe.blockmap provider=github
+  • uploading       file=Uzpos-Setup-1.0.1.exe provider=github
+  • creating GitHub release  reason=release doesn't exist tag=v1.0.1 version=1.0.1
+  ⨯ Cannot cleanup: 
+
+Error #1 --------------------------------------------------------------------------------
+HttpError: 403 Forbidden
+"method: post url: https://api.github.com/repos/uzpos/uzpos-releases/releases\n\n          Data:\n          {\"message\":\"Resource not accessible by personal access token\",\"documentation_url\":\"https://docs.github.com/rest/releases/releases#create-a-release\",\"status\":\"403\"}\n          "
+Headers: {
+  "date": "Sat, 14 Mar 2026 00:19:06 GMT",
+  "content-type": "application/json; charset=utf-8",
+  "content-length": "163",
+  "x-github-media-type": "github.v3; format=json",
+  "x-accepted-github-permissions": "contents=write; contents=write,workflows=write",
+  "x-github-api-version-selected": "2022-11-28",
+  "access-control-expose-headers": "ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, X-GitHub-SSO, X-GitHub-Request-Id, Deprecation, Sunset",
+  "access-control-allow-origin": "*",
+  "strict-transport-security": "max-age=31536000; includeSubdomains; preload",
+  "x-frame-options": "deny",
+  "x-content-type-options": "nosniff",
+  "x-xss-protection": "0",
+  "referrer-policy": "origin-when-cross-origin, strict-origin-when-cross-origin",
+  "content-security-policy": "default-src 'none'",
+  "vary": "Accept-Encoding, Accept, X-Requested-With",
+  "server": "github.com",
+  "x-ratelimit-limit": "5000",
+  "x-ratelimit-remaining": "4996",
+  "x-ratelimit-reset": "1773451049",
+  "x-ratelimit-used": "4",
+  "x-ratelimit-resource": "core",
+  "x-github-request-id": "0A1B:1BC49E:6ED662:6658EA:69B4A97A"
+}
+    at createHttpError (C:\Users\thund\Desktop\Uzpos\Uzpos0.0\node_modules\builder-util-runtime\src\httpExecutor.ts:31:10)
+    at IncomingMessage.<anonymous> (C:\Users\thund\Desktop\Uzpos\Uzpos0.0\node_modules\builder-util-runtime\src\httpExecutor.ts:202:13)
+    at IncomingMessage.emit (node:events:531:35)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at processTicksAndRejections (node:internal/process/task_queues:90:21)
+
+Error #2 --------------------------------------------------------------------------------
+HttpError: 403 Forbidden
+"method: post url: https://api.github.com/repos/uzpos/uzpos-releases/releases\n\n          Data:\n          {\"message\":\"Resource not accessible by personal access token\",\"documentation_url\":\"https://docs.github.com/rest/releases/releases#create-a-release\",\"status\":\"403\"}\n          "
+Headers: {
+  "date": "Sat, 14 Mar 2026 00:19:06 GMT",
+  "content-type": "application/json; charset=utf-8",
+  "content-length": "163",
+  "x-github-media-type": "github.v3; format=json",
+  "x-accepted-github-permissions": "contents=write; contents=write,workflows=write",
+  "x-github-api-version-selected": "2022-11-28",
+  "access-control-expose-headers": "ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, X-GitHub-SSO, X-GitHub-Request-Id, Deprecation, Sunset",
+  "access-control-allow-origin": "*",
+  "strict-transport-security": "max-age=31536000; includeSubdomains; preload",
+  "x-frame-options": "deny",
+  "x-content-type-options": "nosniff",
+  "x-xss-protection": "0",
+  "referrer-policy": "origin-when-cross-origin, strict-origin-when-cross-origin",
+  "content-security-policy": "default-src 'none'",
+  "vary": "Accept-Encoding, Accept, X-Requested-With",
+  "server": "github.com",
+  "x-ratelimit-limit": "5000",
+  "x-ratelimit-remaining": "4996",
+  "x-ratelimit-reset": "1773451049",
+  "x-ratelimit-used": "4",
+  "x-ratelimit-resource": "core",
+  "x-github-request-id": "0A1B:1BC49E:6ED662:6658EA:69B4A97A"
+}
+    at createHttpError (C:\Users\thund\Desktop\Uzpos\Uzpos0.0\node_modules\builder-util-runtime\src\httpExecutor.ts:31:10)
+    at IncomingMessage.<anonymous> (C:\Users\thund\Desktop\Uzpos\Uzpos0.0\node_modules\builder-util-runtime\src\httpExecutor.ts:202:13)
+    at IncomingMessage.emit (node:events:531:35)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at processTicksAndRejections (node:internal/process/task_queues:90:21)  failedTask=build stackTrace=Error: Cannot cleanup: 
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          Error #1 --------------------------------------------------------------------------------
+HttpError: 403 Forbidden
+"method: post url: https://api.github.com/repos/uzpos/uzpos-releases/releases\n\n          Data:\n          {\"message\":\"Resource not accessible by personal access token\",\"documentation_url\":\"https://docs.github.com/rest/releases/releases#create-a-release\",\"status\":\"403\"}\n          "
+Headers: {
+  "date": "Sat, 14 Mar 2026 00:19:06 GMT",
+  "content-type": "application/json; charset=utf-8",
+  "content-length": "163",
+  "x-github-media-type": "github.v3; format=json",
+  "x-accepted-github-permissions": "contents=write; contents=write,workflows=write",
+  "x-github-api-version-selected": "2022-11-28",
+  "access-control-expose-headers": "ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, X-GitHub-SSO, X-GitHub-Request-Id, Deprecation, Sunset",
+  "access-control-allow-origin": "*",
+  "strict-transport-security": "max-age=31536000; includeSubdomains; preload",
+  "x-frame-options": "deny",
+  "x-content-type-options": "nosniff",
+  "x-xss-protection": "0",
+  "referrer-policy": "origin-when-cross-origin, strict-origin-when-cross-origin",
+  "content-security-policy": "default-src 'none'",
+  "vary": "Accept-Encoding, Accept, X-Requested-With",
+  "server": "github.com",
+  "x-ratelimit-limit": "5000",
+  "x-ratelimit-remaining": "4996",
+  "x-ratelimit-reset": "1773451049",
+  "x-ratelimit-used": "4",
+  "x-ratelimit-resource": "core",
+  "x-github-request-id": "0A1B:1BC49E:6ED662:6658EA:69B4A97A"
+}
+    at createHttpError (C:\Users\thund\Desktop\Uzpos\Uzpos0.0\node_modules\builder-util-runtime\src\httpExecutor.ts:31:10)
+    at IncomingMessage.<anonymous> (C:\Users\thund\Desktop\Uzpos\Uzpos0.0\node_modules\builder-util-runtime\src\httpExecutor.ts:202:13)
+    at IncomingMessage.emit (node:events:531:35)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at processTicksAndRejections (node:internal/process/task_queues:90:21)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          Error #2 --------------------------------------------------------------------------------
+HttpError: 403 Forbidden
+"method: post url: https://api.github.com/repos/uzpos/uzpos-releases/releases\n\n          Data:\n          {\"message\":\"Resource not accessible by personal access token\",\"documentation_url\":\"https://docs.github.com/rest/releases/releases#create-a-release\",\"status\":\"403\"}\n          "
+Headers: {
+  "date": "Sat, 14 Mar 2026 00:19:06 GMT",
+  "content-type": "application/json; charset=utf-8",
+  "content-length": "163",
+  "x-github-media-type": "github.v3; format=json",
+  "x-accepted-github-permissions": "contents=write; contents=write,workflows=write",
+  "x-github-api-version-selected": "2022-11-28",
+  "access-control-expose-headers": "ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, X-GitHub-SSO, X-GitHub-Request-Id, Deprecation, Sunset",
+  "access-control-allow-origin": "*",
+  "strict-transport-security": "max-age=31536000; includeSubdomains; preload",
+  "x-frame-options": "deny",
+  "x-content-type-options": "nosniff",
+  "x-xss-protection": "0",
+  "referrer-policy": "origin-when-cross-origin, strict-origin-when-cross-origin",
+  "content-security-policy": "default-src 'none'",
+  "vary": "Accept-Encoding, Accept, X-Requested-With",
+  "server": "github.com",
+  "x-ratelimit-limit": "5000",
+  "x-ratelimit-remaining": "4996",
+  "x-ratelimit-reset": "1773451049",
+  "x-ratelimit-used": "4",
+  "x-ratelimit-resource": "core",
+  "x-github-request-id": "0A1B:1BC49E:6ED662:6658EA:69B4A97A"
+}
+    at createHttpError (C:\Users\thund\Desktop\Uzpos\Uzpos0.0\node_modules\builder-util-runtime\src\httpExecutor.ts:31:10)
+    at IncomingMessage.<anonymous> (C:\Users\thund\Desktop\Uzpos\Uzpos0.0\node_modules\builder-util-runtime\src\httpExecutor.ts:202:13)
+    at IncomingMessage.emit (node:events:531:35)
+    at endReadableNT (node:internal/streams/readable:1698:12)
+    at processTicksAndRejections (node:internal/process/task_queues:90:21)
+    at throwError (C:\Users\thund\Desktop\Uzpos\Uzpos0.0\node_modules\builder-util\src\asyncTaskManager.ts:88:11)
+    at checkErrors (C:\Users\thund\Desktop\Uzpos\Uzpos0.0\node_modules\builder-util\src\asyncTaskManager.ts:53:9)
+    at AsyncTaskManager.awaitTasks (C:\Users\thund\Desktop\Uzpos\Uzpos0.0\node_modules\builder-util\src\asyncTaskManager.ts:67:7)
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at PublishManager.awaitTasks (C:\Users\thund\Desktop\Uzpos\Uzpos0.0\node_modules\app-builder-lib\src\publish\PublishManager.ts:247:5)
+    at executeFinally (C:\Users\thund\Desktop\Uzpos\Uzpos0.0\node_modules\builder-util\src\promise.ts:23:3)

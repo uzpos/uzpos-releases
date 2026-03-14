@@ -177,7 +177,7 @@ export default function SettingsPage() {
                   <Info size={28} />
                 </div>
                 <div className="text-left">
-                   <p className="font-black text-white text-lg uppercase tracking-wider">Uzpos v1.0.1</p>
+                   <p className="font-black text-white text-lg uppercase tracking-wider">Uzpos v1.0.2</p>
                    <p className="text-xs text-slate-400">Stabil Sürüm (Windows x64)</p>
                 </div>
              </div>

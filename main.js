@@ -110,7 +110,8 @@ async function createWindow() {
     logDebug(`Failed to load loading.html: ${err.message}`);
   });
 
-  const url = 'http://localhost:3000';
+  // Check via IPv4 loopback to avoid Windows IPv6 `::1` resolving timeouts.
+  const url = 'http://127.0.0.1:3000';
   logDebug(`Beginning health check for ${url}`);
 
   const isReady = await checkServer(url);
@@ -171,7 +172,7 @@ autoUpdater.on('update-available', () => {
   if (mainWindow) mainWindow.webContents.send('update-status', 'Yeni sürüm mevcut. İndiriliyor...');
 });
 autoUpdater.on('update-not-available', () => {
-  if (mainWindow) mainWindow.webContents.send('update-status', 'Sistem güncel.');
+  if (mainWindow) mainWindow.webContents.send('update-status', 'Sürümünüz güncel.');
 });
 autoUpdater.on('error', (err) => {
   if (mainWindow) mainWindow.webContents.send('update-status', `Hata: ${err.message}`);
@@ -211,19 +212,7 @@ async function prepareStandalone() {
   const extractCmd = `powershell -Command "Expand-Archive -Path '${zipPath.replace(/'/g, "''")}' -DestinationPath '${standaloneDir.replace(/'/g, "''")}' -Force"`;
   require('child_process').execSync(extractCmd);
 
-  // Copy static and public resources
-  const staticSrc = path.join(process.resourcesPath, 'standalone_static');
-  const staticDest = path.join(standaloneDir, '.next', 'static');
-  if (fs.existsSync(staticSrc)) {
-    fs.mkdirSync(path.dirname(staticDest), { recursive: true });
-    fs.cpSync(staticSrc, staticDest, { recursive: true });
-  }
-
-  const publicSrc = path.join(process.resourcesPath, 'standalone_public');
-  const publicDest = path.join(standaloneDir, 'public');
-  if (fs.existsSync(publicSrc)) {
-    fs.cpSync(publicSrc, publicDest, { recursive: true });
-  }
+  // Note: Static and Public files are already contained natively inside standalone.zip at build time.
 
   fs.writeFileSync(versionMarker, Date.now().toString());
   logDebug('Standalone preparation complete.');

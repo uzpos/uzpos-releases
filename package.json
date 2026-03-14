@@ -1,6 +1,6 @@
 {
   "name": "uzpos",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "main": "main.js",
   "scripts": {
@@ -43,15 +43,7 @@
     "extraResources": [
       "prisma/dev.db",
       ".env",
-      "standalone.zip",
-      {
-        "from": ".next/static",
-        "to": "standalone_static"
-      },
-      {
-        "from": "public",
-        "to": "standalone_public"
-      }
+      "standalone.zip"
     ],
     "publish": {
       "provider": "github",
