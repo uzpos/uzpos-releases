@@ -55,10 +55,16 @@ model Product {
   piecesPerBox    Float       @default(1) // Number of items in one box
   stockCount      Float       @default(0) // Total pieces in stock
   criticalLevel   Float       @default(10)
+  isForSale       Boolean     @default(true)
+  isForProduction Boolean     @default(false)
+  supplierId      String
+  supplier        Company     @relation(fields: [supplierId], references: [id])
   orderItems      OrderItem[]
   invoiceItems    InvoiceItem[]
   recipesAsResult RecipeIngredient[] @relation("RecipeResult")
   recipesAsIngred RecipeIngredient[] @relation("RecipeIngredient")
+
+  @@unique([name, supplierId])
 }
 
 model InvoiceItem {
@@ -123,6 +129,7 @@ model Company {
   phone         String?
   balance       Float     @default(0)
   invoices      Invoice[]
+  products      Product[]
 }
 
 model Invoice {

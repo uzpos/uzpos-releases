@@ -1,12 +1,27 @@
 "use client";
 
-import { Navbar } from "@/components/Navbar";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { AlertTriangle, Plus, Search, Layers, Calculator, Edit2, Save, X, Download, Trash2 } from "lucide-react";
+import { 
+  Package, 
+  Search, 
+  Plus, 
+  Download, 
+  AlertTriangle, 
+  TrendingUp, 
+  Filter,
+  Edit3,
+  Trash2,
+  X,
+  Save,
+  Building2,
+  Layers,
+  CheckCircle2,
+  ShoppingBag,
+  Hammer
+} from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import * as xlsx from "xlsx";
 import { saveAs } from "file-saver";
 
@@ -18,24 +33,36 @@ export default function InventoryPage() {
   const { status } = useSession();
   const router = useRouter();
 
-  const [inventory, setInventory] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
-  const [categories, setCategories] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
+  const [inventory, setInventory] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [companies, setCompanies] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  const [activeTab, setActiveTab] = useState("ALL"); // ALL, RECIPE, DRINK, MATERIAL
+  const [activeTab, setActiveTab] = useState<"ALL" | "KRİTİK" | "STOKTA">("ALL");
+  const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Add Product State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [newProduct, setNewProduct] = useState({ name: "", categoryId: "", type: "MATERIAL", piecesPerBox: 1, purchasePrice: 0, kdv: 20, markup: 30, criticalLevel: 10 });
+  const [newProduct, setNewProduct] = useState({ 
+    name: "", 
+    categoryId: "", 
+    supplierId: "",
+    isForProduction: false,
+    isForSale: true,
+    purchasePrice: 0, 
+    kdv: 20, 
+    markup: 30, 
+    criticalLevel: 10,
+    unit: "adet"
+  });
   const [isAdding, setIsAdding] = useState(false);
 
   // Edit State
-  const [editingItem, setEditingItem] = useState<any | null>(null); // eslint-disable-line @typescript-eslint/no-explicit-any
+  const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [editQuantity, setEditQuantity] = useState<number>(0);
   const [editCriticalLevel, setEditCriticalLevel] = useState<number>(10);
   const [isSaving, setIsSaving] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [showCriticalOnly, setShowCriticalOnly] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -50,14 +77,17 @@ export default function InventoryPage() {
   const fetchInventory = async () => {
      try {
         setIsLoading(true);
-        const [invRes, catRes] = await Promise.all([
+        const [invRes, catRes, compRes] = await Promise.all([
            fetch("/api/products"),
-           fetch("/api/categories")
+           fetch("/api/categories"),
+           fetch("/api/companies")
         ]);
-        if (invRes.ok && catRes.ok) {
+        if (invRes.ok && catRes.ok && compRes.ok) {
            const data = await invRes.json();
            const catData = await catRes.json();
+           const compData = await compRes.json();
            setCategories(catData);
+           setCompanies(compData);
            setInventory(data);
         }
      } catch (err) {
@@ -69,447 +99,383 @@ export default function InventoryPage() {
 
   const filteredInventory = inventory.filter(item => {
      const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          item.category?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+                          item.supplier?.name?.toLowerCase().includes(searchTerm.toLowerCase());
      if (!matchesSearch) return false;
 
-     if (showCriticalOnly && item.stockCount > (item.criticalLevel || 10)) return false;
+     if (selectedCompany && item.supplierId !== selectedCompany) return false;
 
-     if (activeTab === "ALL") return true;
-     if (activeTab === "RECIPE") return item.type === "RECIPE";
-     if (activeTab === "MATERIAL") return item.type === "MATERIAL";
-     if (activeTab === "DRINK") return item.category?.type === "DRINK" || item.category?.name?.toLowerCase().includes("içecek") || item.type === "READY";
+     if (activeTab === "KRİTİK" && item.stockCount > (item.criticalLevel || 10)) return false;
+     if (activeTab === "STOKTA" && item.stockCount <= 0) return false;
+
      return true;
   });
 
-  const lowStockItems = filteredInventory.filter(item => item.stockCount <= (item.criticalLevel || 20)); 
-  const totalValue = filteredInventory.reduce((sum, item) => sum + (item.stockCount * (item.purchasePrice || item.estimatedPrice || 0)), 0);
+  const lowStockItems = inventory.filter(p => p.stockCount <= p.criticalLevel);
+  const totalValue = inventory.reduce((acc, p) => acc + (p.purchasePrice * p.stockCount), 0);
 
   const exportToExcel = () => {
     const wb = xlsx.utils.book_new();
-    const getSheetData = (filterType: string) => {
-       const filtered = inventory.filter(p => {
-           if (filterType === "RECIPE") return p.type === "RECIPE";
-           if (filterType === "MATERIAL") return p.type === "MATERIAL";
-           if (filterType === "DRINK") return p.category?.type === "DRINK" || p.category?.name?.toLowerCase().includes("içecek") || p.type === "READY";
-           return true; 
-       });
-        return filtered.map(p => ({
-            "Ürün Adı": p.name,
-            "Kategori": p.category?.name || "Belirsiz",
-            "Stok Miktarı": p.stockCount,
-            "Birim": p.unit,
-            "Birim Maliyeti (₺)": p.purchasePrice || p.estimatedPrice || 0,
-            "Tahmini Değer (₺)": p.stockCount * (p.purchasePrice || p.estimatedPrice || 0)
-        }));
-    };
-
-    xlsx.utils.book_append_sheet(wb, xlsx.utils.json_to_sheet(getSheetData("ALL")), "Tüm Ürünler");
-    xlsx.utils.book_append_sheet(wb, xlsx.utils.json_to_sheet(getSheetData("RECIPE")), "Üretim");
-    xlsx.utils.book_append_sheet(wb, xlsx.utils.json_to_sheet(getSheetData("DRINK")), "İçecek");
-    xlsx.utils.book_append_sheet(wb, xlsx.utils.json_to_sheet(getSheetData("MATERIAL")), "Sarf Malzeme");
-
+    const ws = xlsx.utils.json_to_sheet(inventory.map(p => ({
+        "Ürün Adı": p.name,
+        "Cari": p.supplier?.name || "-",
+        "Kategori": p.category?.name || "Genel",
+        "Stok": p.stockCount,
+        "Birim": p.unit,
+        "Alış Fiyatı": p.purchasePrice,
+        "Satış Fiyatı": p.finalSalePrice
+    })));
+    xlsx.utils.book_append_sheet(wb, ws, "Envanter");
     const excelBuffer = xlsx.write(wb, { bookType: "xlsx", type: "array" });
     const blob = new Blob([excelBuffer], { type: "application/octet-stream" });
-    saveAs(blob, "Uzpos_Depo_Raporu.xlsx");
+    saveAs(blob, `Uzpos_Depo_${new Date().toLocaleDateString()}.xlsx`);
   };
 
   const saveNewProduct = async () => {
-     if (!newProduct.name || !newProduct.type) return;
+     if (!newProduct.name || !newProduct.supplierId) return;
      try {
        setIsAdding(true);
-       
-       const kdvMulti = (Number(newProduct.kdv) / 100) + 1;
-       const priceWithKdv = Number(newProduct.purchasePrice) * kdvMulti;
+       const priceWithKdv = Number(newProduct.purchasePrice) * ((Number(newProduct.kdv) / 100) + 1);
        const suggestedPrice = priceWithKdv * ((Number(newProduct.markup) / 100) + 1);
 
        const res = await fetch("/api/products", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-             name: newProduct.name,
-           type: newProduct.type,
-           categoryId: newProduct.categoryId,
-           unit: "adet", // default
-           piecesPerBox: Number(newProduct.piecesPerBox),
-           purchasePrice: Number(newProduct.purchasePrice),
-           markup: Number(newProduct.markup),
-           criticalLevel: Number(newProduct.criticalLevel),
-           finalSalePrice: Number(suggestedPrice.toFixed(2))
-        })
-     });
-
-     if (res.ok) {
-        setIsAddModalOpen(false);
-        setNewProduct({ name: "", categoryId: "", type: "MATERIAL", piecesPerBox: 1, purchasePrice: 0, kdv: 20, markup: 30, criticalLevel: 10 });
-        fetchInventory();
-     } else {
-          alert("Ürün eklenirken hata oluştu.");
-       }
-     } catch (e) {
-        console.error(e);
-     } finally {
-        setIsAdding(false);
-     }
-  };
-
-   const handleEditClick = (item: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
-      setEditingItem(item);
-      setEditQuantity(item.stockCount);
-      setEditCriticalLevel(item.criticalLevel || 10);
-   };
-
-   const handleDeleteProduct = async () => {
-      if (!editingItem) return;
-      if (!window.confirm(`"${editingItem.name}" ürününü silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`)) return;
-      
-      try {
-         setIsSaving(true);
-         const res = await fetch(`/api/products/${editingItem.id}`, { method: "DELETE" });
-         if (res.ok) {
-            setEditingItem(null);
-            fetchInventory();
-         } else {
-            alert("Ürün silinemedi. Bu ürün faturada veya reçetede kullanılıyor olabilir.");
-         }
-      } catch (e) {
-         console.error(e);
-      } finally {
-         setIsSaving(false);
-      }
-   };
-
-  const saveInventoryUpdate = async () => {
-     if (!editingItem) return;
-     try {
-        setIsSaving(true);
-         const res = await fetch(`/api/products/${editingItem.id}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-             stockCount: Number(editQuantity),
-             criticalLevel: Number(editCriticalLevel)
+             ...newProduct,
+             finalSalePrice: Number(suggestedPrice.toFixed(2))
           })
        });
-        
-        if (res.ok) {
-           setEditingItem(null);
-           fetchInventory();
-        } else {
-           alert("Güncelleme başarısız.");
-        }
-     } catch (err) {
-        console.error(err);
-     } finally {
-        setIsSaving(false);
-     }
+
+       if (res.ok) {
+          setIsAddModalOpen(false);
+          setNewProduct({ name: "", categoryId: "", supplierId: "", isForProduction: false, isForSale: true, purchasePrice: 0, kdv: 20, markup: 30, criticalLevel: 10, unit: "adet" });
+          fetchInventory();
+       }
+     } catch (e) { console.error(e); } finally { setIsAdding(false); }
+  };
+
+  const handleUpdate = async () => {
+     if (!editingProduct) return;
+     try {
+        setIsSaving(true);
+        const res = await fetch(`/api/products/${editingProduct.id}`, {
+           method: "PATCH",
+           headers: { "Content-Type": "application/json" },
+           body: JSON.stringify({ stockCount: Number(editQuantity), criticalLevel: Number(editCriticalLevel) })
+        });
+        if (res.ok) { setEditingProduct(null); fetchInventory(); }
+     } catch (e) { console.error(e); } finally { setIsSaving(false); }
+  };
+
+  const handleDelete = async (id: string) => {
+     if (!window.confirm("Bu ürünü silmek istediğinize emin misiniz?")) return;
+     try {
+        const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
+        if (res.ok) fetchInventory();
+     } catch (e) { console.error(e); }
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center">
-      <Navbar />
-      
-      <main className="flex-1 w-full max-w-[1400px] p-4 md:p-8 mt-4">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 bg-black/40 p-6 rounded-2xl glass-panel border border-white/10">
+    <div className="flex flex-col h-screen bg-[#0a0a0c] text-slate-200 overflow-hidden font-sans">
+      {/* Header Bar - More Professional & Integrated */}
+      <header className="h-16 border-b border-white/5 bg-black/40 backdrop-blur-xl flex items-center justify-between px-6 shrink-0">
+        <div className="flex items-center gap-4">
+          <div className="bg-primary/20 p-2 rounded-xl ring-1 ring-primary/30">
+            <Package className="text-primary w-5 h-5" />
+          </div>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white mb-1">Depo ve Stok Yönetimi</h1>
-            <p className="text-slate-400">Ürün mevcudiyetini, kritik stokları ve depo değerini analiz edin.</p>
-          </div>
-          <div className="flex gap-4">
-            <Button onClick={exportToExcel} variant="outline" className="h-12 border-white/20 text-slate-300 hover:text-white hover:bg-white/10 gap-2">
-              <Download size={18} /> Excel&apos;e Aktar
-            </Button>
-            <Button onClick={() => setIsAddModalOpen(true)} className="h-12 bg-primary hover:bg-primary/90 text-white gap-2 font-bold px-6 shadow-[0_0_15px_rgba(218,26,50,0.5)]">
-              <Plus size={18} /> Ürün Ekle
-            </Button>
+            <h1 className="text-lg font-black tracking-tight text-white flex items-center gap-2">DEPO & STOK <span className="text-[10px] bg-white/10 px-2 py-0.5 rounded-full text-slate-400 font-bold uppercase tracking-widest">{filteredInventory.length} KALEM</span></h1>
+            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Profesyonel Envanter Yönetim Paneli</p>
           </div>
         </div>
 
-        {/* Tab Filters */}
-        <div className="flex gap-2 overflow-x-auto mb-6 bg-black/40 p-2 rounded-xl border border-white/10 w-max">
-           {[
-             { id: "ALL", label: "Tüm Ürünler" },
-             { id: "RECIPE", label: "Üretim (Reçeteli)" },
-             { id: "DRINK", label: "İçecek & Hazır" },
-             { id: "MATERIAL", label: "Sarf Malzeme" }
-           ].map(tab => (
-             <button
-               key={tab.id}
-               onClick={() => setActiveTab(tab.id)}
-               className={`px-6 py-2.5 rounded-lg font-medium transition-all duration-300 whitespace-nowrap ${
-                 activeTab === tab.id 
-                   ? "bg-primary text-white shadow-[0_0_15px_rgba(218,26,50,0.5)]" 
-                   : "text-slate-400 hover:text-white hover:bg-white/5"
-               }`}
-             >
-               {tab.label}
-             </button>
-           ))}
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="glass-card border-l-4 border-l-blue-500 overflow-hidden relative">
-            <div className="absolute -bottom-4 -right-4 text-blue-500/10">
-              <Layers size={120} />
-            </div>
-            <CardHeader className="pb-2">
-              <CardDescription className="text-blue-400 uppercase tracking-widest font-bold">Toplam Kalem</CardDescription>
-              <CardTitle className="text-4xl text-white font-black">{filteredInventory.length}</CardTitle>
-            </CardHeader>
-          </Card>
-
-          <Card className="glass-card border-l-4 border-l-red-500 overflow-hidden relative">
-             <div className="absolute -bottom-4 -right-4 text-red-500/10 animate-pulse">
-              <AlertTriangle size={120} />
-            </div>
-            <CardHeader className="pb-2">
-              <CardDescription className="text-red-400 uppercase tracking-widest font-bold">Kritik Stok</CardDescription>
-              <CardTitle className="text-4xl text-white font-black">{lowStockItems.length}</CardTitle>
-            </CardHeader>
-          </Card>
-
-          <Card className="glass-card border-l-4 border-l-emerald-500 overflow-hidden relative">
-             <div className="absolute -bottom-4 -right-4 text-emerald-500/10">
-              <Calculator size={120} />
-            </div>
-            <CardHeader className="pb-2">
-              <CardDescription className="text-emerald-400 uppercase tracking-widest font-bold">Depo Değeri</CardDescription>
-              <CardTitle className="text-4xl text-white font-black">{totalValue.toLocaleString('tr-TR')} ₺</CardTitle>
-            </CardHeader>
-          </Card>
-        </div>
-
-        {lowStockItems.length > 0 && (
-          <div className="mb-8 p-4 rounded-xl bg-red-950/40 border border-red-500/50 flex flex-col md:flex-row items-center justify-between gap-4 backdrop-blur-md">
-            <div className="flex items-center gap-3">
-               <div className="p-3 bg-red-500/20 rounded-full text-red-500 animate-pulse">
-                 <AlertTriangle size={24} />
-               </div>
-               <div>
-                  <h3 className="text-red-400 font-bold text-lg">Azalan Ürün Uyarıları</h3>
-                  <p className="text-slate-300 text-sm">Depoda kritik seviyenin altına düşen {lowStockItems.length} ürün var. Sipariş vermeyi unutmayın.</p>
-               </div>
-            </div>
-            <Button variant="outline" className="border-red-500 text-red-400 hover:bg-red-500/20">Hemen Sipariş Ver</Button>
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
+            <input 
+              type="text" 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Ürün veya cari ara..." 
+              className="bg-white/5 border border-white/10 rounded-full pl-9 pr-4 h-9 w-64 text-xs text-white focus:outline-none focus:ring-1 focus:ring-primary/50 transition-all placeholder:text-slate-600"
+            />
           </div>
-        )}
+          <Button onClick={() => setIsAddModalOpen(true)} className="bg-primary hover:bg-primary/90 text-white font-black text-xs gap-2 px-6 h-9 rounded-full shadow-lg shadow-primary/20">
+            <Plus size={16} strokeWidth={3} /> YENİ ÜRÜN
+          </Button>
+          <Button variant="outline" onClick={exportToExcel} className="border-white/10 bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 h-9 w-9 p-0 rounded-full">
+            <Download size={16} />
+          </Button>
+        </div>
+      </header>
 
-        <Card className="glass-panel border-white/10">
-          <CardHeader>
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-               <div>
-                 <CardTitle className="text-white">Güncel Depo Durumu</CardTitle>
-                 <CardDescription className="text-slate-400">Tüm ürünlerin anlık stok ve maliyet listesi.</CardDescription>
-               </div>
-                <div className="flex flex-wrap gap-2">
-                   <Button 
-                     onClick={() => setShowCriticalOnly(!showCriticalOnly)}
-                     variant={showCriticalOnly ? "destructive" : "outline"}
-                     className={`h-11 gap-2 font-bold px-4 ${showCriticalOnly ? 'animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'border-white/10 text-slate-400'}`}
-                   >
-                     <AlertTriangle size={18} /> {showCriticalOnly ? "Tümünü Göster" : "Sadece Kritik Stok"}
-                   </Button>
-                   <div className="relative w-full md:w-72">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                      <Input 
-                        placeholder="Ürün veya kategori ara..." 
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="h-11 pl-10 bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus-visible:ring-primary rounded-xl"
-                      />
-                   </div>
-                </div>
+      {/* Main Layout */}
+      <main className="flex-1 flex overflow-hidden">
+        {/* Left Sidebar: Filters & Categories */}
+        <aside className="w-64 border-r border-white/5 bg-black/20 p-4 shrink-0 flex flex-col gap-6">
+          <section>
+            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 px-2">GÖRÜNÜM</h3>
+            <div className="space-y-1">
+              {[
+                { id: "ALL", label: "TÜM ENVANTER", icon: Package },
+                { id: "KRİTİK", label: "KRİTİK STOKLAR", icon: AlertTriangle, color: "text-amber-500" },
+                { id: "STOKTA", label: "ELDEKİLER", icon: CheckCircle2, color: "text-emerald-500" }
+              ].map(tab => (
+                <button 
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === tab.id ? "bg-primary/10 text-primary" : "text-slate-500 hover:bg-white/5 hover:text-slate-300"}`}
+                >
+                  <tab.icon size={14} className={activeTab === tab.id ? "text-primary" : tab.color} />
+                  {tab.label}
+                </button>
+              ))}
             </div>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow className="border-white/10 hover:bg-transparent">
-                  <TableHead className="text-slate-400">Ürün Adı</TableHead>
-                  <TableHead className="text-slate-400">Kategori</TableHead>
-                  <TableHead className="text-slate-400 text-right">Mevcut Stok</TableHead>
-                  <TableHead className="text-slate-400 text-right">Kritik Seviye</TableHead>
-                  <TableHead className="text-slate-400 text-right">Durum</TableHead>
-                  <TableHead className="text-slate-400 text-right">Birim Maliyet</TableHead>
-                  <TableHead className="text-slate-400 text-center w-16">İşlem</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {isLoading ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-slate-400">Yükleniyor...</TableCell>
-                  </TableRow>
-                ) : filteredInventory.length === 0 ? (
-                  <TableRow>
-                     <TableCell colSpan={7} className="text-center py-8 text-slate-400">Bu gruba ait kayıtlı ürün bulunamadı.</TableCell>
-                  </TableRow>
-                ) : (
-                  filteredInventory.map((item) => {
-                    const isLow = item.stockCount <= (item.criticalLevel || 20); // 20 is placeholder minimum array limit
-                    return (
-                      <TableRow key={item.id} className="border-white/5 hover:bg-white/5 transition-colors">
-                        <TableCell className="font-bold text-white py-4">{item.name}</TableCell>
-                        <TableCell className="text-slate-400">
-                          <span className="bg-white/5 px-2 py-1 rounded-md text-xs">{item.category?.name || "Kategori Yok"}</span>
-                        </TableCell>
-                        <TableCell className={`text-right font-bold text-lg ${isLow ? 'text-red-400' : 'text-slate-200'}`}>
-                          {item.stockCount} <span className="text-sm font-normal text-slate-500">{item.unit}</span>
-                        </TableCell>
-                        <TableCell className="text-right text-slate-400">{item.criticalLevel || 20}</TableCell>
-                        <TableCell className="text-right w-[150px]">
-                          {isLow ? (
-                             <span className="inline-flex items-center gap-1.5 rounded-full bg-red-500/20 px-3 py-1 text-xs font-semibold text-red-400 border border-red-500/30">
-                                Yetersiz
-                             </span>
-                          ) : (
-                             <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-400 border border-emerald-500/30">
-                                Yeterli
-                             </span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right text-slate-300 font-medium">{item.purchasePrice} ₺</TableCell>
-                        <TableCell className="text-center">
-                          <Button 
-                             onClick={() => handleEditClick(item)} 
-                             variant="ghost" size="icon" title="Ürünü Düzenle" className="text-slate-400 hover:text-white hover:bg-white/10 rounded-full w-8 h-8"
-                          >
-                            <Edit2 size={16} />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })
-                )}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+          </section>
 
-        {/* Edit Modal */}
-        <Dialog open={!!editingItem} onOpenChange={(open: boolean) => !open && setEditingItem(null)}>
-          <DialogContent className="border-white/10 glass-panel text-white">
-            <DialogHeader>
-              <DialogTitle>Stok Düzenle</DialogTitle>
-            </DialogHeader>
-            <div className="py-4 space-y-4">
-               <div>
-                 <label className="text-sm text-slate-400 mb-1 block">Ürün Adı</label>
-                 <Input value={editingItem?.name || ""} disabled className="bg-white/5 border-white/10 text-slate-300" />
-               </div>
-               <div className="grid grid-cols-2 gap-4">
-                  <div>
-                     <label className="text-sm text-slate-400 mb-1 block">Güncel Stok ({(editingItem?.unit) || 'Adet'})</label>
-                     <Input 
-                       type="number" 
-                       value={editQuantity} 
-                       onChange={(e) => setEditQuantity(Number(e.target.value))} 
-                       className="bg-black/50 border-white/10 focus-visible:ring-primary text-lg font-bold" 
-                     />
-                  </div>
-                  <div>
-                     <label className="text-sm text-slate-400 mb-1 block">Kritik Stok Seviyesi</label>
-                     <Input 
-                       type="number" 
-                       value={editCriticalLevel} 
-                       onChange={(e) => setEditCriticalLevel(Number(e.target.value))} 
-                       className="bg-black/50 border-white/10 focus-visible:ring-primary text-lg font-bold" 
-                     />
-                  </div>
-               </div>
-               <p className="text-xs text-slate-500 mt-2">*Sayım sonucu çıkan net miktarı ve kritik stok uyarısı için eşik değeri güncelleyebilirsiniz.</p>
+          <section className="flex-1 overflow-y-auto no-scrollbar">
+            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 px-2">CARİLER</h3>
+            <div className="space-y-1">
+              <button 
+                onClick={() => setSelectedCompany(null)}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold transition-all ${selectedCompany === null ? "bg-white/10 text-white" : "text-slate-500 hover:bg-white/5 hover:text-slate-300"}`}
+              >
+                <Building2 size={14} /> HEPSİ
+              </button>
+              {companies.map(comp => (
+                <button 
+                  key={comp.id}
+                  onClick={() => setSelectedCompany(comp.id)}
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold transition-all ${selectedCompany === comp.id ? "bg-primary/10 text-primary" : "text-slate-500 hover:bg-white/5 hover:text-slate-300"}`}
+                >
+                  <div className="w-1.5 h-1.5 rounded-full bg-slate-700" />
+                  <span className="truncate flex-1 text-left">{comp.name}</span>
+                </button>
+              ))}
             </div>
-            <DialogFooter className="flex gap-2 justify-between items-center w-full">
-               <Button variant="destructive" onClick={handleDeleteProduct} disabled={isSaving} className="bg-red-500/20 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/50">
-                 <Trash2 size={16} className="mr-2"/> Ürünü Sil
-               </Button>
-               <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => setEditingItem(null)} className="border-white/20 text-slate-300 hover:text-white hover:bg-white/10">
-                    <X size={16} className="mr-2"/> İptal
-                  </Button>
-                  <Button onClick={saveInventoryUpdate} disabled={isSaving} className="bg-primary hover:bg-primary/90 text-white font-bold shadow-[0_0_15px_rgba(218,26,50,0.5)]">
-                    {isSaving ? "Kaydediliyor..." : <><Save size={16} className="mr-2"/> Kaydet</>}
-                  </Button>
-               </div>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+          </section>
 
-        {/* Add Product Modal */}
-        <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-          <DialogContent className="border-white/10 glass-panel text-white">
-            <DialogHeader>
-              <DialogTitle>Yeni Ürün / Malzeme Ekle</DialogTitle>
-            </DialogHeader>
-            <div className="py-4 space-y-4 text-left">
-               <div>
-                 <label className="text-sm text-slate-400 mb-1 block">Ürün Adı <span className="text-red-500">*</span></label>
-                 <Input value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} placeholder="Örn: Un" className="bg-black/50 border-white/10 focus-visible:ring-primary text-slate-200" />
+          {/* Quick Stats at bottom of sidebar */}
+          <section className="pt-4 border-t border-white/5">
+             <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-3">
+                <div className="flex items-center gap-2 mb-1">
+                   <TrendingUp size={12} className="text-emerald-500" />
+                   <span className="text-[9px] font-black text-emerald-500 uppercase tracking-wider">Envanter Değeri</span>
+                </div>
+                <p className="text-lg font-black text-white">{totalValue.toLocaleString()} ₺</p>
+             </div>
+          </section>
+        </aside>
+
+        {/* Content Area */}
+        <div className="flex-1 flex flex-col min-w-0 bg-[#0c0c0e]">
+          {/* Information Strip */}
+          <div className="h-12 border-b border-white/5 flex items-center px-6 gap-6 bg-black/20">
+             <div className="flex items-center gap-3">
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-tighter">Filtre:</span>
+                <span className="text-[11px] font-bold text-white bg-primary/20 px-2 py-0.5 rounded border border-primary/20 capitalize">{selectedCompany ? companies.find(c=>c.id === selectedCompany)?.name : "Tüm Cariler"}</span>
+             </div>
+             {lowStockItems.length > 0 && (
+               <div className="flex items-center gap-2 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
+                  <AlertTriangle size={12} className="text-amber-500" />
+                  <span className="text-[10px] font-black text-amber-500 uppercase">{lowStockItems.length} ÜRÜN KRİTİK SEVİYEDE</span>
                </div>
-               <div className="grid grid-cols-2 gap-4">
-                  <div>
-                     <label className="text-sm text-slate-400 mb-1 block">Türü <span className="text-red-500">*</span></label>
-                     <select 
-                       value={newProduct.type} 
-                       onChange={(e) => {
-                         const val = e.target.value;
-                         if (val === "DRINK") {
-                            const drinkCat = categories.find(c => c.name === "İçecekler");
-                            setNewProduct({...newProduct, type: val, categoryId: drinkCat?.id || newProduct.categoryId});
-                         } else if (val === "SALE_FOOD") {
-                            const foodCat = categories.find(c => c.name === "Mezeler");
-                            setNewProduct({...newProduct, type: val, categoryId: foodCat?.id || newProduct.categoryId});
-                         } else {
-                            setNewProduct({...newProduct, type: val});
-                         }
-                       }} 
-                       className="w-full bg-black/50 border border-white/10 rounded-md p-2 text-white outline-none focus:border-primary"
-                     >
-                        <option value="MATERIAL">Üretim (Hammadde)</option>
-                        <option value="SALE_FOOD">Satış (Meze/Yemek)</option>
-                        <option value="DRINK">İçecek</option>
-                     </select>
-                  </div>
-                  <div>
-                     <label className="text-sm text-slate-400 mb-1 block">Kategori</label>
-                     <select value={newProduct.categoryId} onChange={(e) => setNewProduct({...newProduct, categoryId: e.target.value})} className="w-full bg-black/50 border border-white/10 rounded-md p-2 text-white outline-none focus:border-primary">
-                        <option value="">İsteğe Bağlı (Genel)</option>
-                        {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                     </select>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                     <label className="text-sm text-slate-400 mb-1 block">Koli İçi Adet</label>
-                     <Input type="number" value={newProduct.piecesPerBox || ''} onChange={(e) => setNewProduct({...newProduct, piecesPerBox: Number(e.target.value)})} placeholder="1" className="bg-black/50 border-white/10 focus-visible:ring-primary" />
-                  </div>
-                  <div>
-                     <label className="text-sm text-slate-400 mb-1 block">Kritik Stok Seviyesi</label>
-                     <Input type="number" value={newProduct.criticalLevel || ''} onChange={(e) => setNewProduct({...newProduct, criticalLevel: Number(e.target.value)})} placeholder="10" className="bg-black/50 border-white/10 focus-visible:ring-primary" />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="col-span-1">
-                     <label className="text-sm text-slate-400 mb-1 block">Varsayılan KDV (%)</label>
-                     <Input type="number" value={newProduct.kdv} onChange={(e) => setNewProduct({...newProduct, kdv: Number(e.target.value)})} className="bg-black/50 border-white/10 focus-visible:ring-primary text-center" />
-                  </div>
-                  <div className="col-span-1">
-                     <label className="text-sm text-slate-400 mb-1 block">Hedef Kar Marjı (%)</label>
-                     <Input type="number" value={newProduct.markup} onChange={(e) => setNewProduct({...newProduct, markup: Number(e.target.value)})} className="bg-black/50 border-white/10 focus-visible:ring-primary text-center" />
-                  </div>
-                </div>
-                <p className="text-xs text-slate-500 mt-2">*Ürün eklendiğinde stok 0 olarak başlar. Stok girişi için fatura işlenmelidir.</p>
+             )}
+          </div>
+
+          {/* Table Container */}
+          <div className="flex-1 overflow-y-auto p-6 no-scrollbar">
+            <div className="border border-white/5 rounded-2xl bg-black/40 overflow-hidden shadow-2xl">
+              <table className="w-full border-collapse">
+                <thead>
+                  <tr className="bg-white/5 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] border-b border-white/5">
+                    <th className="py-4 px-4 text-left font-black">Ürün / Tanım</th>
+                    <th className="py-4 px-4 text-left font-black">Cari</th>
+                    <th className="py-4 px-4 text-left font-black">Kategori</th>
+                    <th className="py-4 px-4 text-right font-black">Birim Fiyat</th>
+                    <th className="py-4 px-4 text-center font-black">Mevcut Stok</th>
+                    <th className="py-4 px-4 text-center font-black">Durum</th>
+                    <th className="py-4 px-4 text-right font-black pr-6">İşlem</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {isLoading ? (
+                    <tr><td colSpan={7} className="py-20 text-center text-slate-600 text-xs animate-pulse">Ümumi Envanter Verileri Getiriliyor...</td></tr>
+                  ) : filteredInventory.length === 0 ? (
+                    <tr><td colSpan={7} className="py-20 text-center text-slate-600 text-xs italic">Seçili kriterlere uygun kayıt bulunamadı.</td></tr>
+                  ) : filteredInventory.map(item => (
+                    <tr key={item.id} className="group hover:bg-white/[0.02] transition-all">
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center font-black text-slate-400 text-xs group-hover:bg-primary/20 group-hover:text-primary transition-colors">
+                            {item.name[0].toUpperCase()}
+                          </div>
+                          <div>
+                            <p className="text-[12px] font-black text-white">{item.name}</p>
+                            <div className="flex gap-1.5 mt-0.5">
+                               {item.isForProduction && (
+                                 <span className="flex items-center gap-1 text-[8px] font-black text-blue-500 uppercase bg-blue-500/10 px-1 rounded-sm border border-blue-500/10" title="Üretim Malzemesi"><Hammer size={8} /> ÜRETİM</span>
+                               )}
+                               {item.isForSale && (
+                                 <span className="flex items-center gap-1 text-[8px] font-black text-emerald-500 uppercase bg-emerald-500/10 px-1 rounded-sm border border-emerald-500/10" title="Doğrudan Satış"><ShoppingBag size={8} /> SATIŞ</span>
+                               )}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="text-[11px] font-bold text-slate-400 group-hover:text-slate-200 transition-colors uppercase">{item.supplier?.name || "TANIMSIZ"}</span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="text-[9px] font-black text-slate-500 border border-white/5 bg-white/5 px-2 py-0.5 rounded-full uppercase">{item.category?.name || "GENEL"}</span>
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <p className="text-[12px] font-black text-white">{item.purchasePrice.toFixed(2)} ₺</p>
+                        <p className="text-[9px] text-slate-500 font-bold uppercase">SON ALIŞ</p>
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        <div className="flex flex-col items-center">
+                            <span className={`text-[13px] font-black ${item.stockCount <= item.criticalLevel ? "text-amber-500 drop-shadow-[0_0_8px_rgba(245,158,11,0.3)]" : "text-white"}`}>
+                              {item.stockCount} <span className="text-[10px] font-bold opacity-40 uppercase">{item.unit}</span>
+                            </span>
+                            <div className="w-12 h-1 bg-white/5 rounded-full mt-1 overflow-hidden">
+                               <div className={`h-full rounded-full ${item.stockCount <= item.criticalLevel ? "bg-amber-500" : "bg-primary"}`} style={{ width: `${Math.min((item.stockCount / (item.criticalLevel * 2)) * 100, 100)}%` }} />
+                            </div>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-center">
+                        {item.stockCount <= item.criticalLevel ? (
+                          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[9px] font-black uppercase">
+                            <AlertTriangle size={10} /> KRİTİK
+                          </div>
+                        ) : (
+                          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[9px] font-black uppercase">
+                            <CheckCircle2 size={10} /> STOKTA
+                          </div>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-right pr-6">
+                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-1 group-hover:translate-x-0">
+                          <Button onClick={() => { setEditingProduct(item); setEditQuantity(item.stockCount); setEditCriticalLevel(item.criticalLevel); }} variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full hover:bg-primary/20 text-slate-500 hover:text-primary"><Edit3 size={14} /></Button>
+                          <Button onClick={() => handleDelete(item.id)} variant="ghost" size="sm" className="h-8 w-8 p-0 rounded-full hover:bg-red-500/20 text-slate-500 hover:text-red-500"><Trash2 size={14} /></Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            <DialogFooter className="flex gap-2 justify-end">
-               <Button variant="outline" onClick={() => setIsAddModalOpen(false)} className="border-white/20 text-slate-300 hover:text-white hover:bg-white/10">
-                 <X size={16} className="mr-2"/> İptal
-               </Button>
-               <Button onClick={saveNewProduct} disabled={isAdding} className="bg-primary hover:bg-primary/90 text-white font-bold shadow-[0_0_15px_rgba(218,26,50,0.5)]">
-                 {isAdding ? "Ekleniyor..." : <><Save size={16} className="mr-2"/> Sisteme Ekle</>}
-               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
+          </div>
+        </div>
       </main>
+
+      {/* Edit Modal - Compact */}
+      <Dialog open={!!editingProduct} onOpenChange={(open) => !open && setEditingProduct(null)}>
+        <DialogContent className="border-white/10 bg-[#0d0d0f] text-white max-w-sm rounded-[24px]">
+          <DialogHeader className="mb-4">
+             <DialogTitle className="text-sm font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                <Edit3 size={16} /> STOK DÜZENLE
+             </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+             <div className="bg-white/5 p-3 rounded-xl border border-white/5">
+                <p className="text-[10px] font-black text-slate-500 uppercase mb-1">DÜZENLENEN ÜRÜN</p>
+                <p className="text-sm font-bold text-white">{editingProduct?.name}</p>
+             </div>
+             <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-tighter">MEVCUT STOK</label>
+                   <Input type="number" value={editQuantity} onChange={(e) => setEditQuantity(Number(e.target.value))} className="h-10 text-xs bg-black/50 border-white/10 rounded-xl focus:ring-primary/40" />
+                </div>
+                <div className="space-y-1.5">
+                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-tighter">KRİTİK EŞİK</label>
+                   <Input type="number" value={editCriticalLevel} onChange={(e) => setEditCriticalLevel(Number(e.target.value))} className="h-10 text-xs bg-black/50 border-white/10 rounded-xl focus:ring-primary/40 transition-all" />
+                </div>
+             </div>
+          </div>
+          <DialogFooter className="mt-6 gap-2">
+             <Button variant="ghost" onClick={() => setEditingProduct(null)} className="h-10 text-[11px] font-black text-slate-500 hover:text-white rounded-xl">VAZGEÇ</Button>
+             <Button onClick={handleUpdate} disabled={isSaving} className="h-10 text-[11px] font-black bg-primary rounded-xl px-8">KAYDET</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Modal - Modern & Business Flow */}
+      <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+        <DialogContent className="border-white/10 bg-[#0d0d0f] text-white max-w-md rounded-[28px] p-8 shadow-2xl">
+           <DialogHeader className="mb-6">
+              <div className="flex items-center gap-3">
+                 <div className="bg-primary/20 p-2 rounded-xl"><Plus className="text-primary w-5 h-5" /></div>
+                 <div>
+                    <DialogTitle className="text-lg font-black tracking-tight text-white uppercase">YENİ ÜRÜN KAYDI</DialogTitle>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-0.5">Stok ve tedarik zinciri entegrasyonu</p>
+                 </div>
+              </div>
+           </DialogHeader>
+           
+           <div className="space-y-5">
+              {/* Product Identity */}
+              <div className="space-y-1.5">
+                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">ÜRÜN / MALZEME ADI</label>
+                 <Input value={newProduct.name} onChange={(e) => setNewProduct({...newProduct, name: e.target.value})} className="h-11 text-[13px] font-bold bg-black/40 border-white/10 rounded-xl focus:border-primary/50 placeholder:text-slate-800" placeholder="Örn: Coca Cola Zero 330ml" />
+              </div>
+
+              {/* Entity Association - PRIMARY FOCUS */}
+              <div className="grid grid-cols-2 gap-5">
+                 <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 flex items-center gap-1"><Building2 size={10} /> CARİ / TEDARİKÇİ</label>
+                    <select value={newProduct.supplierId} onChange={(e) => setNewProduct({...newProduct, supplierId: e.target.value})} className="w-full h-11 text-[12px] font-bold bg-black/40 border border-white/10 rounded-xl px-3 text-white outline-none focus:border-primary/50 transition-all appearance-none cursor-pointer">
+                       <option value="">Cari Seçiniz</option>
+                       {companies.map(c => <option key={c.id} value={c.id} className="bg-[#0d0d0f]">{c.name}</option>)}
+                    </select>
+                 </div>
+                 <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1 flex items-center gap-1"><Layers size={10} /> KATEGORİ</label>
+                    <select value={newProduct.categoryId} onChange={(e) => setNewProduct({...newProduct, categoryId: e.target.value})} className="w-full h-11 text-[12px] font-bold bg-black/40 border border-white/10 rounded-xl px-3 text-white outline-none focus:border-primary/50 transition-all appearance-none cursor-pointer">
+                       <option value="">Kategori Seçiniz</option>
+                       {categories.map(c => <option key={c.id} value={c.id} className="bg-[#0d0d0f]">{c.name}</option>)}
+                    </select>
+                 </div>
+              </div>
+
+              {/* Flags - Modern Checkboxes */}
+              <div className="p-1 gap-1 grid grid-cols-2 bg-white/5 rounded-2xl border border-white/5">
+                 <label className={`flex items-center justify-center gap-2 p-3 rounded-xl cursor-pointer transition-all ${newProduct.isForProduction ? "bg-primary/10 text-primary border border-primary/20" : "text-slate-500 hover:bg-white/5"}`}>
+                    <input type="checkbox" checked={newProduct.isForProduction} onChange={(e) => setNewProduct({...newProduct, isForProduction: e.target.checked})} className="hidden" />
+                    <Hammer size={16} />
+                    <span className="text-[11px] font-black uppercase tracking-tighter">ÜRETİMDE</span>
+                 </label>
+                 <label className={`flex items-center justify-center gap-2 p-3 rounded-xl cursor-pointer transition-all ${newProduct.isForSale ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" : "text-slate-500 hover:bg-white/5"}`}>
+                    <input type="checkbox" checked={newProduct.isForSale} onChange={(e) => setNewProduct({...newProduct, isForSale: e.target.checked})} className="hidden" />
+                    <ShoppingBag size={16} />
+                    <span className="text-[11px] font-black uppercase tracking-tighter">SATIŞTA</span>
+                 </label>
+              </div>
+
+              {/* Pricing & Logistics */}
+              <div className="grid grid-cols-3 gap-4">
+                 <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-500 uppercase">ALIŞ (TL)</label>
+                    <Input type="number" value={newProduct.purchasePrice} onChange={(e) => setNewProduct({...newProduct, purchasePrice: Number(e.target.value)})} className="h-10 text-xs font-bold bg-black/30 border-white/10 rounded-xl" />
+                 </div>
+                 <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-500 uppercase">BİRİM</label>
+                    <Input value={newProduct.unit} onChange={(e) => setNewProduct({...newProduct, unit: e.target.value})} className="h-10 text-xs font-bold bg-black/30 border-white/10 rounded-xl" placeholder="adet, kg..." />
+                 </div>
+                 <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-500 uppercase">KRİTİK</label>
+                    <Input type="number" value={newProduct.criticalLevel} onChange={(e) => setNewProduct({...newProduct, criticalLevel: Number(e.target.value)})} className="h-10 text-xs font-bold bg-black/30 border-white/10 rounded-xl" />
+                 </div>
+              </div>
+           </div>
+
+           <DialogFooter className="mt-8 gap-3">
+              <Button variant="ghost" onClick={() => setIsAddModalOpen(false)} className="h-11 text-[11px] font-black text-slate-500 hover:text-white rounded-2xl flex-1">İPTAL EDİLSİN</Button>
+              <Button onClick={saveNewProduct} disabled={isAdding} className="h-11 text-[11px] font-black bg-primary rounded-2xl flex-1 shadow-xl shadow-primary/20">SİSTEME KAYDET</Button>
+           </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
+

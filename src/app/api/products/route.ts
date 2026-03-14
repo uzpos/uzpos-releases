@@ -22,6 +22,7 @@ export async function GET(req: NextRequest) {
       where: whereClause,
       include: {
         category: true,
+        supplier: true,
       }
     });
     
@@ -41,42 +42,30 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     
     // basic validation
-    if (!body.name || !body.type || !body.unit) {
-       return NextResponse.json({ error: "Missing required fields: name, type, unit" }, { status: 400 });
+    if (!body.name || !body.unit || !body.supplierId) {
+       return NextResponse.json({ error: "Missing required fields: name, unit, supplierId" }, { status: 400 });
     }
 
-    // Ensure we have a valid categoryId based on User Type request
-    // Categories should be seeded or exist: "İçecekler", "Mezeler", "Genel"
-    let categoryId = body.categoryId;
-    let type = body.type; // Request can be: MATERIAL (Üretim), READY (Satış), DRINK (İçecek)
-    
-    if (type === "DRINK") {
-       type = "READY";
-       const drinkCat = await prisma.category.findFirst({ where: { name: "İçecekler" } });
-       categoryId = drinkCat?.id || categoryId;
-    } else if (type === "SALE_FOOD") { // or however Satış is sent
-       type = "READY";
-       const foodCat = await prisma.category.findFirst({ where: { name: "Mezeler" } });
-       categoryId = foodCat?.id || categoryId;
-    }
-
-    if (!categoryId) {
-       const defaultCat = await prisma.category.findFirst({ where: { name: "Genel" } });
-       categoryId = defaultCat?.id;
-    }
+    let type = body.type || "READY";
+    if (body.isForProduction && !body.isForSale) type = "MATERIAL";
+    if (body.isForProduction && body.isForSale) type = "RECIPE";
+    if (!body.isForProduction && body.isForSale) type = "READY";
 
     const product = await prisma.product.create({
       data: {
         name: body.name,
         type: type,
-        categoryId: categoryId,
+        categoryId: body.categoryId || null,
+        supplierId: body.supplierId,
+        isForSale: body.isForSale ?? true,
+        isForProduction: body.isForProduction ?? false,
         purchasePrice: body.purchasePrice || 0,
         markup: body.markup || 0,
         estimatedPrice: body.estimatedPrice || 0,
         finalSalePrice: body.finalSalePrice || 0,
         unit: body.unit,
         piecesPerBox: body.piecesPerBox || 1, 
-        stockCount: 0, // "ürün ekle kısmından eklenen ürünler kesinlikle stoğa yansımayacak."
+        stockCount: 0,
         criticalLevel: body.criticalLevel || 10,
       }
     });
