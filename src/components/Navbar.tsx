@@ -13,11 +13,11 @@ export function Navbar() {
   
   const role = session?.user.role;
   const navItems = [
-    { name: "Satış", href: "/pos", icon: UtensilsCrossed, roles: ["ADMIN", "CASHIER", "WAITER"] },
-    { name: "Mutfak", href: "/kitchen", icon: ChefHat, roles: ["ADMIN", "CHEF", "CASHIER", "WAITER"] },
-    { name: "Reçeteler", href: "/recipes", icon: BookOpen, roles: ["ADMIN", "CASHIER"] },
-    { name: "Depo", href: "/inventory", icon: PackageOpen, roles: ["ADMIN", "CASHIER"] },
-    { name: "Muhasebe", href: "/accounting", icon: Calculator, roles: ["ADMIN", "CASHIER"] },
+    { name: "Satış", href: "/pos", icon: UtensilsCrossed, roles: ["ADMIN", "KASIYER"] },
+    { name: "Mutfak", href: "/kitchen", icon: ChefHat, roles: ["ADMIN", "CHEF"] },
+    { name: "Reçeteler", href: "/recipes", icon: BookOpen, roles: ["ADMIN"] },
+    { name: "Depo", href: "/inventory", icon: PackageOpen, roles: ["ADMIN"] },
+    { name: "Muhasebe", href: "/accounting", icon: Calculator, roles: ["ADMIN"] },
   ].filter(item => !item.roles || item.roles.includes(role || ""));
 
   const [terminalIP, setTerminalIP] = useState("...");

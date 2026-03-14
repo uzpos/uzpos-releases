@@ -33,6 +33,29 @@ function getLocalIP() {
 
 const localIP = getLocalIP();
 
+function setupFirewall() {
+  if (process.platform !== 'win32') return;
+  try {
+    logDebug('Checking/Setting up Windows Firewall rule for port 3000...');
+    // Rule name "Uzpos External Access"
+    const checkCmd = 'netsh advfirewall firewall show rule name="Uzpos External Access"';
+    require('child_process').exec(checkCmd, (error) => {
+      if (error) {
+        // Rule doesn't exist, create it
+        const addCmd = 'netsh advfirewall firewall add rule name="Uzpos External Access" dir=in action=allow protocol=TCP localport=3000';
+        require('child_process').exec(addCmd, (err) => {
+          if (err) logDebug(`Failed to add firewall rule: ${err.message}`);
+          else logDebug('Firewall rule added successfully.');
+        });
+      } else {
+        logDebug('Firewall rule already exists.');
+      }
+    });
+  } catch (err) {
+    logDebug(`Firewall setup error: ${err.message}`);
+  }
+}
+
 async function checkServer(url) {
   const startTime = Date.now();
   const timeout = 30000; // 30 seconds timeout for production stability
@@ -253,6 +276,7 @@ async function startServer() {
 }
 
 app.on('ready', () => {
+  setupFirewall();
   startServer();
   createWindow();
 });

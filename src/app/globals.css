@@ -65,4 +65,35 @@
   .text-glow {
     text-shadow: 0 0 10px rgba(218, 26, 50, 0.5);
   }
+
+  /* Responsive/Mobile Utilities */
+  @media (max-width: 768px) {
+    .container {
+      @apply px-4;
+    }
+    
+    button, .btn {
+      @apply min-h-[44px] min-w-[44px]; /* Apple/Web Accessibility standard for touch */
+    }
+
+    .glass-panel {
+      backdrop-filter: blur(10px); /* Lower blur for performance on mobile */
+    }
+  }
+
+  /* Custom Scrollbar for a premium look */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
 }

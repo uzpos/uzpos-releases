@@ -195,21 +195,21 @@ export function OrderScreen() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-black/95">
+    <div className="flex flex-col lg:flex-row h-[calc(100vh-64px)] overflow-hidden bg-black/95">
       {/* Sol Taraf: Menü ve Kategoriler */}
-      <div className="flex-1 flex flex-col h-full relative z-0">
+      <div className="flex-1 flex flex-col min-h-0 relative z-0">
         
         {/* Kategoriler */}
-        <div className="p-4 flex gap-3 overflow-x-auto border-b border-white/10 bg-black/80 backdrop-blur-md">
-          <Button variant="ghost" onClick={() => selectTable(null)} className="mr-2 text-slate-300">
-            ← Masalara Dön
+        <div className="p-3 md:p-4 flex gap-2 md:gap-3 overflow-x-auto border-b border-white/10 bg-black/80 backdrop-blur-md scrollbar-hide shrink-0">
+          <Button variant="ghost" size="sm" onClick={() => selectTable(null)} className="mr-1 md:mr-2 text-slate-300 h-10">
+            ← <span className="hidden md:inline ml-1">Masalar</span>
           </Button>
-          <div className="h-8 w-px bg-white/20 mx-2 self-center"></div>
+          <div className="h-6 w-px bg-white/20 mx-1 md:mx-2 self-center"></div>
           {categories.map(cat => (
             <button 
               key={cat.id} 
               onClick={() => setActiveCategory(cat.id)}
-              className={`px-6 py-2 rounded-full font-medium transition-all duration-300 whitespace-nowrap border ${
+              className={`px-4 md:px-6 py-2 rounded-full text-sm md:text-base font-medium transition-all duration-300 whitespace-nowrap border ${
                 activeCategory === cat.id 
                   ? "bg-primary text-white border-primary shadow-[0_0_15px_rgba(218,26,50,0.5)]" 
                   : "bg-white/5 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white"
@@ -219,32 +219,32 @@ export function OrderScreen() {
             </button>
           ))}
         </div>
-
+ 
         {/* Ürün Izgarası */}
-        <div className="flex-1 overflow-y-auto p-6 scrollbar-hide">
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 scrollbar-hide">
           {isLoading ? (
              <div className="text-center text-slate-400 py-12">Menü Yükleniyor...</div>
           ) : filteredProducts.length === 0 ? (
              <div className="text-center text-slate-400 py-12">Bu kategoriye ait ürün bulunmuyor.</div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
               {filteredProducts.map(product => (
                 <button
                   key={product.id}
                   onClick={() => handleAddToCart(product)}
-                  className="group relative h-36 flex flex-col p-4 bg-[#1a1a1a] rounded-2xl border border-white/10 hover:border-primary/50 justify-between items-start text-left shadow-lg"
+                  className="group relative h-32 md:h-36 flex flex-col p-3 md:p-4 bg-[#1a1a1a] rounded-2xl border border-white/10 hover:border-primary/50 justify-between items-start text-left shadow-lg active:scale-95 transition-transform"
                 >
                   <div className="absolute inset-0 bg-primary/0 group-hover:bg-primary/5 rounded-2xl transition-colors duration-300 pointer-events-none" />
                   
-                  <span className="font-bold text-lg text-white group-hover:text-primary transition-colors leading-tight z-10 w-full">
+                  <span className="font-bold text-base md:text-lg text-white group-hover:text-primary transition-colors leading-tight z-10 w-full line-clamp-2">
                     {product.name}
                   </span>
                   
-                  <div className="flex justify-between items-center w-full mt-4 z-10">
-                    <span className="text-xl font-black tracking-tighter text-slate-300 group-hover:text-white">
+                  <div className="flex justify-between items-center w-full mt-2 md:mt-4 z-10">
+                    <span className="text-lg md:text-xl font-black tracking-tighter text-slate-300 group-hover:text-white">
                       {product.price} ₺
                     </span>
-                    <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white group-hover:bg-primary group-hover:shadow-[0_0_10px_rgba(218,26,50,0.8)] transition-all">
+                    <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-white/10 flex items-center justify-center text-white group-hover:bg-primary group-hover:shadow-[0_0_10px_rgba(218,26,50,0.8)] transition-all">
                       +
                     </div>
                   </div>
@@ -254,17 +254,17 @@ export function OrderScreen() {
           )}
         </div>
       </div>
-
+ 
       {/* Sağ Taraf: Adisyon Sepeti */}
-      <div className="w-[450px] bg-[#111111] border-l border-white/10 flex flex-col h-full shadow-2xl z-20">
-        <div className="p-6 border-b border-white/5 flex justify-between items-center bg-black/20">
+      <div className="w-full lg:w-[450px] bg-[#111111] border-t lg:border-t-0 lg:border-l border-white/10 flex flex-col h-[50vh] lg:h-full shadow-2xl z-20 shrink-0">
+        <div className="p-4 md:p-6 border-b border-white/5 flex justify-between items-center bg-black/20 shrink-0">
           <div>
-            <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-widest">Aktif Adisyon</h3>
-            <div className="text-3xl font-black text-white mt-1">
+            <h3 className="text-[10px] md:text-sm font-semibold text-slate-400 uppercase tracking-widest">Aktif Adisyon</h3>
+            <div className="text-xl md:text-3xl font-black text-white mt-0.5 md:mt-1">
               {selectedTableName || "Seçilmedi"}
             </div>
           </div>
-          <Button variant="outline" size="sm" className="border-white/20 text-slate-300 hover:text-white" onClick={() => {
+          <Button variant="outline" size="sm" className="h-8 md:h-10 border-white/20 text-xs md:text-sm text-slate-300 hover:text-white" onClick={() => {
             alert("Masa taşıma ekranı açılacak.");
             selectTable(null);
           }}>
