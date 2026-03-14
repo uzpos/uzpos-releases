@@ -8,6 +8,7 @@ interface OrderItemInput {
   productId: string;
   quantity: number | string;
   price: number | string;
+  note?: string;
 }
 
 export async function POST(req: Request) {
@@ -50,6 +51,7 @@ export async function POST(req: Request) {
                    productId: item.productId,
                    quantity: Number(item.quantity),
                    price: Number(item.price),
+                   note: item.note || null,
                    status: itemStatus
                 }))
              },
@@ -75,6 +77,7 @@ export async function POST(req: Request) {
                 productId: item.productId,
                 quantity: Number(item.quantity),
                 price: Number(item.price),
+                note: item.note || null,
                 status: itemStatus
               }))
             },

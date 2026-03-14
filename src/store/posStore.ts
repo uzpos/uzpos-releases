@@ -12,6 +12,7 @@ export type CartItem = {
   name: string;
   price: number;
   quantity: number;
+  note?: string;
 }
 
 interface PosState {
@@ -21,6 +22,7 @@ interface PosState {
   selectTable: (id: string | null, name?: string | null) => void;
   addToCart: (product: PosProduct) => void;
   removeFromCart: (productId: string) => void;
+  updateNote: (productId: string, note: string) => void;
   clearCart: () => void;
   setCart: (items: CartItem[]) => void;
 }
@@ -47,6 +49,9 @@ export const usePosStore = create<PosState>((set) => ({
   }),
   removeFromCart: (productId) => set((state) => ({
     cart: state.cart.filter(item => item.productId !== productId)
+  })),
+  updateNote: (productId, note) => set((state) => ({
+    cart: state.cart.map(item => item.productId === productId ? { ...item, note } : item)
   })),
   clearCart: () => set({ cart: [] }),
   setCart: (items) => set({ cart: items })

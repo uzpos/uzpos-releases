@@ -12,11 +12,11 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const type = searchParams.get("type"); // READY, MATERIAL, RECIPE
+    const categoryType = searchParams.get("categoryType"); // FOOD, DRINK
 
-    let whereClause = {};
-    if (type) {
-      whereClause = { type };
-    }
+    let whereClause: any = {};
+    if (type) whereClause.type = type;
+    if (categoryType) whereClause.categoryType = categoryType;
 
     const products = await prisma.product.findMany({
       where: whereClause,
@@ -59,6 +59,7 @@ export async function POST(req: NextRequest) {
         supplierId: body.supplierId,
         isForSale: body.isForSale ?? true,
         isForProduction: body.isForProduction ?? false,
+        categoryType: body.categoryType || "FOOD",
         purchasePrice: body.purchasePrice || 0,
         markup: body.markup || 0,
         estimatedPrice: body.estimatedPrice || 0,

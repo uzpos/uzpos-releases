@@ -18,7 +18,7 @@ interface OrderItemResponse {
 }
 
 export function OrderScreen() {
-  const { selectedTableId, selectedTableName, cart, addToCart, removeFromCart, clearCart, selectTable, setCart } = usePosStore();
+  const { selectedTableId, selectedTableName, cart, addToCart, removeFromCart, clearCart, selectTable, setCart, updateNote } = usePosStore();
   const [categories, setCategories] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
   const [products, setProducts] = useState<PosProduct[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>("");
@@ -168,10 +168,15 @@ export function OrderScreen() {
       const isDirectSale = selectedTableId === "DIRECT_SALE";
       const payload = {
          tableId: selectedTableId,
-         items: cart.map(item => ({ productId: item.productId, quantity: item.quantity, price: item.price })),
-         paymentMethod: method,
-         totalAmount,
-         isDirectSale
+          items: cart.map(item => ({ 
+             productId: item.productId, 
+             quantity: item.quantity, 
+             price: item.price,
+             note: item.note 
+          })),
+          paymentMethod: method,
+          totalAmount,
+          isDirectSale
       };
       
       const res = await fetch("/api/orders", {
@@ -286,6 +291,13 @@ export function OrderScreen() {
                 <div className="flex-1">
                   <div className="font-bold text-white text-lg">{item.name}</div>
                   <div className="text-sm text-primary font-medium mt-1">{item.price} ₺ <span className="text-slate-500 font-normal">x {item.quantity}</span></div>
+                  <input 
+                    type="text" 
+                    placeholder="Not ekle..." 
+                    value={item.note || ""} 
+                    onChange={(e) => updateNote(item.productId, e.target.value)}
+                    className="mt-2 w-full bg-black/40 border border-white/10 rounded-md px-2 py-1 text-xs text-slate-300 focus:outline-none focus:border-primary/50"
+                  />
                 </div>
                 <div className="flex items-center gap-4 ml-4">
                   <div className="font-bold text-xl text-white">{item.price * item.quantity} ₺</div>
@@ -333,11 +345,16 @@ export function OrderScreen() {
                    headers: { "Content-Type": "application/json" },
                    body: JSON.stringify({
                      tableId: selectedTableId,
-                     items: cart.map(item => ({ productId: item.productId, quantity: item.quantity, price: item.price })),
-                     paymentMethod: null,
-                     totalAmount,
-                     isDirectSale: false
-                   })
+                      items: cart.map(item => ({ 
+                        productId: item.productId, 
+                        quantity: item.quantity, 
+                        price: item.price,
+                        note: item.note 
+                      })),
+                      paymentMethod: null,
+                      totalAmount,
+                      isDirectSale: false
+                    })
                 });
                 if (res.ok) {
                    alert("Sipariş mutfağa (Beklemeye) gönderildi.");

@@ -57,6 +57,7 @@ model Product {
   criticalLevel   Float       @default(10)
   isForSale       Boolean     @default(true)
   isForProduction Boolean     @default(false)
+  categoryType    String      @default("FOOD") // FOOD, DRINK
   supplierId      String
   supplier        Company     @relation(fields: [supplierId], references: [id])
   orderItems      OrderItem[]
@@ -110,6 +111,7 @@ model OrderItem {
   product   Product         @relation(fields: [productId], references: [id])
   quantity  Float
   price     Float
+  note      String?
   status    String          @default("PENDING") // PENDING, PREPARING, READY
 }
 

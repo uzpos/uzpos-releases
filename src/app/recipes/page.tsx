@@ -281,7 +281,16 @@ export default function RecipesPage() {
                                     className="w-full bg-black/50 border border-white/10 rounded-md p-2 text-white"
                                  />
                               </td>
-                              <td className="p-3 text-slate-400 text-sm italic">{item.unit}</td>
+                               <td className="p-3">
+                                <select 
+                                   value={item.unit} 
+                                   onChange={(e) => updateIngredient(item.id, "unit", e.target.value)}
+                                   className="w-full bg-black/50 border border-white/10 rounded-md p-2 text-white text-xs"
+                                >
+                                  <option value="kg">KG</option>
+                                  <option value="adet">ADET</option>
+                                </select>
+                               </td>
                               <td className="p-3">
                                 <input type="number" step="0.01" value={item.quantity} onChange={(e) => updateIngredient(item.id, "quantity", e.target.value)} className="w-full bg-black/50 border border-white/10 rounded-md p-2 text-white text-center"/>
                               </td>

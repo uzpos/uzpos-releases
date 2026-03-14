@@ -40,7 +40,7 @@ export async function GET() {
       items: order.items.map(item => ({
         id: item.id,
         name: `${item.quantity}x ${item.product.name}`,
-        note: "" // Note field can be added to OrderItem later
+        note: item.note || ""
       }))
     }));
 

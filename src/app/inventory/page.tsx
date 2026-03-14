@@ -38,7 +38,7 @@ export default function InventoryPage() {
   const [companies, setCompanies] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  const [activeTab, setActiveTab] = useState<"ALL" | "KRİTİK" | "STOKTA">("ALL");
+  const [activeTab, setActiveTab] = useState<"ALL" | "KRİTİK" | "STOKTA" | "DRINK" | "PRODUCTION">("ALL");
   const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -50,9 +50,10 @@ export default function InventoryPage() {
     supplierId: "",
     isForProduction: false,
     isForSale: true,
+    categoryType: "FOOD",
     purchasePrice: 0, 
     kdv: 20, 
-    markup: 30, 
+    markup: 20, 
     criticalLevel: 10,
     unit: "adet"
   });
@@ -106,6 +107,8 @@ export default function InventoryPage() {
 
      if (activeTab === "KRİTİK" && item.stockCount > (item.criticalLevel || 10)) return false;
      if (activeTab === "STOKTA" && item.stockCount <= 0) return false;
+     if (activeTab === "DRINK" && item.categoryType !== "DRINK") return false;
+     if (activeTab === "PRODUCTION" && !item.isForProduction) return false;
 
      return true;
   });
@@ -148,7 +151,7 @@ export default function InventoryPage() {
 
        if (res.ok) {
           setIsAddModalOpen(false);
-          setNewProduct({ name: "", categoryId: "", supplierId: "", isForProduction: false, isForSale: true, purchasePrice: 0, kdv: 20, markup: 30, criticalLevel: 10, unit: "adet" });
+          setNewProduct({ name: "", categoryId: "", supplierId: "", isForProduction: false, isForSale: true, categoryType: "FOOD", purchasePrice: 0, kdv: 20, markup: 20, criticalLevel: 10, unit: "adet" });
           fetchInventory();
        }
      } catch (e) { console.error(e); } finally { setIsAdding(false); }
@@ -218,6 +221,8 @@ export default function InventoryPage() {
             <div className="space-y-1">
               {[
                 { id: "ALL", label: "TÜM ENVANTER", icon: Package },
+                { id: "DRINK", label: "İÇECEKLER", icon: ShoppingBag, color: "text-blue-500" },
+                { id: "PRODUCTION", label: "ÜRETİM MALZEMELERİ", icon: Hammer, color: "text-orange-500" },
                 { id: "KRİTİK", label: "KRİTİK STOKLAR", icon: AlertTriangle, color: "text-amber-500" },
                 { id: "STOKTA", label: "ELDEKİLER", icon: CheckCircle2, color: "text-emerald-500" }
               ].map(tab => (
@@ -458,10 +463,20 @@ export default function InventoryPage() {
                     <label className="text-[10px] font-black text-slate-500 uppercase">ALIŞ (TL)</label>
                     <Input type="number" value={newProduct.purchasePrice} onChange={(e) => setNewProduct({...newProduct, purchasePrice: Number(e.target.value)})} className="h-10 text-xs font-bold bg-black/30 border-white/10 rounded-xl" />
                  </div>
-                 <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-slate-500 uppercase">BİRİM</label>
-                    <Input value={newProduct.unit} onChange={(e) => setNewProduct({...newProduct, unit: e.target.value})} className="h-10 text-xs font-bold bg-black/30 border-white/10 rounded-xl" placeholder="adet, kg..." />
-                 </div>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-slate-500 uppercase">TÜRE GÖRE</label>
+                    <select value={newProduct.categoryType} onChange={(e) => setNewProduct({...newProduct, categoryType: e.target.value})} className="w-full h-10 text-xs font-bold bg-black/30 border border-white/10 rounded-xl px-2 text-white outline-none">
+                       <option value="FOOD">YİYECEK / MEZE</option>
+                       <option value="DRINK">İÇECEK</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                     <label className="text-[10px] font-black text-slate-500 uppercase">BİRİM</label>
+                     <select value={newProduct.unit} onChange={(e) => setNewProduct({...newProduct, unit: e.target.value})} className="w-full h-10 text-xs font-bold bg-black/30 border border-white/10 rounded-xl px-2 text-white outline-none">
+                        <option value="adet">ADET</option>
+                        <option value="kg">KG</option>
+                     </select>
+                  </div>
                  <div className="space-y-1.5">
                     <label className="text-[10px] font-black text-slate-500 uppercase">KRİTİK</label>
                     <Input type="number" value={newProduct.criticalLevel} onChange={(e) => setNewProduct({...newProduct, criticalLevel: Number(e.target.value)})} className="h-10 text-xs font-bold bg-black/30 border-white/10 rounded-xl" />

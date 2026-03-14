@@ -91,7 +91,7 @@ export default function AccountingPage() {
   const [invoiceName, setInvoiceName] = useState("");
   const [invoiceDate, setInvoiceDate] = useState(new Date().toISOString().split('T')[0]);
   const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([
-    { id: Date.now(), productId: "", productName: "", unit: "adet", piecesPerBox: 1, quantity: 1, basePrice: 0, kdv: 20, marginValue: 30, finalPrice: 0 }
+    { id: Date.now(), productId: "", productName: "", unit: "adet", piecesPerBox: 1, quantity: 1, basePrice: 0, kdv: 20, marginValue: 20, finalPrice: 0 }
   ]);
   const [editingInvoiceId, setEditingInvoiceId] = useState<string | null>(null);
 
@@ -129,7 +129,14 @@ export default function AccountingPage() {
   };
 
   const processInvoice = async () => {
-     if (!invoiceFirm || invoiceItems.length === 0) return;
+     if (!invoiceFirm) {
+        alert("Lütfen önce bir Cari (Firma) seçiniz.");
+        return;
+     }
+     if (invoiceItems.length === 0 || invoiceItems.some(i => !i.productId)) {
+        alert("Lütfen en az bir geçerli ürün ekleyiniz.");
+        return;
+     }
      try {
        const res = await fetch(editingInvoiceId ? `/api/invoices/${editingInvoiceId}` : "/api/invoices", {
           method: editingInvoiceId ? "PATCH" : "POST",
@@ -154,7 +161,7 @@ export default function AccountingPage() {
   };
 
   const resetInvoice = () => {
-    setInvoiceFirm(""); setInvoiceName(""); setInvoiceItems([{ id: Date.now(), productId: "", productName: "", unit: "adet", piecesPerBox: 1, quantity: 1, basePrice: 0, kdv: 20, marginValue: 30, finalPrice: 0 }]); setEditingInvoiceId(null);
+    setInvoiceFirm(""); setInvoiceName(""); setInvoiceItems([{ id: Date.now(), productId: "", productName: "", unit: "adet", piecesPerBox: 1, quantity: 1, basePrice: 0, kdv: 20, marginValue: 20, finalPrice: 0 }]); setEditingInvoiceId(null);
   };
 
   const handleEditInvoice = async (invoice: Invoice) => {
@@ -248,9 +255,10 @@ export default function AccountingPage() {
                   <th className="py-4 px-4 text-center">MİKTAR</th>
                   <th className="py-4 px-4 text-right">BİRİM FİYAT</th>
                   <th className="py-4 px-4 text-center">KDV</th>
-                  <th className="py-4 px-4 text-center">MARJ (%)</th>
-                  <th className="py-4 px-4 text-right">SATIŞ FİYATI</th>
-                  <th className="py-4 px-6 text-center">İŞLEM</th>
+                   <th className="py-4 px-4 text-center">MARJ (%)</th>
+                   <th className="py-4 px-4 text-right">ÖNERİLEN</th>
+                   <th className="py-4 px-4 text-right">SATIŞ FİYATI</th>
+                   <th className="py-4 px-6 text-center">İŞLEM</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
@@ -272,8 +280,11 @@ export default function AccountingPage() {
                     <td className="py-3 px-4 text-right"><input type="number" step="0.01" className="w-24 h-9 bg-black/40 border border-white/5 rounded-lg text-right text-[11px] text-white font-black px-2 outline-none" value={item.basePrice} onChange={(e) => setInvoiceItems(prev => prev.map(i => i.id === item.id ? { ...i, basePrice: e.target.value } : i))} /></td>
                     <td className="py-3 px-4 text-center"><input type="number" className="w-16 h-9 bg-black/40 border border-white/5 rounded-lg text-center text-[10px] text-white font-black outline-none" value={item.kdv} onChange={(e) => setInvoiceItems(prev => prev.map(i => i.id === item.id ? { ...i, kdv: e.target.value } : i))} /></td>
                     <td className="py-3 px-4 text-center"><input type="number" className="w-16 h-9 bg-black/40 border border-white/5 rounded-lg text-center text-[10px] text-white font-black outline-none" value={item.marginValue} onChange={(e) => setInvoiceItems(prev => prev.map(i => i.id === item.id ? { ...i, marginValue: e.target.value } : i))} /></td>
+                    <td className="py-3 px-4 text-right">
+                       <span className="text-[10px] text-slate-500 font-bold">{(Number(item.basePrice) * (1 + Number(item.kdv)/100) * (1 + Number(item.marginValue)/100)).toFixed(2)} ₺</span>
+                    </td>
                     <td className="py-3 px-4 text-right px-6">
-                      <span className="text-[12px] font-black text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.2)]">{(Number(item.basePrice) * (1 + Number(item.kdv)/100) * (1 + Number(item.marginValue)/100)).toFixed(2)} ₺</span>
+                      <input type="number" step="0.01" className="w-24 h-9 bg-black/40 border border-primary/20 rounded-lg text-right text-[12px] text-emerald-400 font-black px-2 outline-none" value={item.finalPrice} onChange={(e) => setInvoiceItems(prev => prev.map(i => i.id === item.id ? { ...i, finalPrice: e.target.value } : i))} />
                     </td>
                     <td className="py-3 px-6 text-center">
                       <Button variant="ghost" size="sm" onClick={() => setInvoiceItems(prev => prev.length > 1 ? prev.filter(i => i.id !== item.id) : prev)} className="h-8 w-8 p-0 rounded-full hover:bg-red-500/10 text-slate-500 hover:text-red-500 group transition-all">
@@ -285,9 +296,9 @@ export default function AccountingPage() {
               </tbody>
             </table>
             <div className="p-6 border-t border-white/5 bg-black/20 flex justify-between items-center">
-               <Button variant="ghost" onClick={() => setInvoiceItems([...invoiceItems, { id: Date.now(), productId: "", productName: "", unit: "adet", piecesPerBox: 1, quantity: 1, basePrice: 0, kdv: 20, marginValue: 30, finalPrice: 0 }])} className="text-xs font-black gap-2 text-slate-400 hover:text-white group">
-                 <div className="bg-white/5 p-1 rounded-md group-hover:bg-primary/20 transition-all"><Plus size={14} /></div> SATIR EKLE
-               </Button>
+                <Button variant="ghost" onClick={() => setInvoiceItems([...invoiceItems, { id: Date.now(), productId: "", productName: "", unit: "adet", piecesPerBox: 1, quantity: 1, basePrice: 0, kdv: 20, marginValue: 20, finalPrice: 0 }])} className="text-xs font-black gap-2 text-slate-400 hover:text-white group">
+                  <div className="bg-white/5 p-1 rounded-md group-hover:bg-primary/20 transition-all"><Plus size={14} /></div> SATIR EKLE
+                </Button>
                <div className="flex gap-3">
                   <Button variant="ghost" onClick={() => { setActiveView("DASHBOARD"); resetInvoice(); }} className="h-11 px-8 rounded-xl text-slate-500 font-bold hover:text-white transition-all">VAZGEÇ</Button>
                   <Button className="bg-primary hover:bg-primary/90 h-11 px-10 rounded-xl text-white font-black text-xs shadow-xl shadow-primary/20 gap-2" onClick={processInvoice}>
@@ -431,42 +442,63 @@ export default function AccountingPage() {
             </div>
           )}
 
-          {activeView === "COMPANIES" && (
+          {activeView === "PRICE_CHANGE" && (
             <div className="flex-1 overflow-y-auto p-6 no-scrollbar space-y-6">
                <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-black text-white uppercase tracking-tight">CARİ HESAP YÖNETİMİ</h2>
-                  <Button onClick={() => { setEditingCompany(null); setCompanyForm({ name: "", contactPerson: "", phone: "" }); setIsCompanyModalOpen(true); }} className="bg-primary hover:bg-primary/90 text-white font-black text-xs gap-2 px-6 h-9 rounded-full">
-                    <Plus size={16} /> CARİ EKLE
-                  </Button>
+                  <h2 className="text-lg font-black text-white uppercase tracking-tight">FİYAT YÖNETİMİ</h2>
+                  <div className="flex bg-white/5 p-1 rounded-xl border border-white/10">
+                    {["TÜMÜ", "YEMEKLER", "MEZELER", "İÇECEKLER", "ÜRETİM"].map(cat => (
+                      <button 
+                        key={cat}
+                        onClick={() => {
+                          // Simple local filter for demo, usually would fetch from API or filter existing state
+                          alert(`${cat} kategorisi seçildi.`);
+                        }}
+                        className="px-4 py-2 rounded-lg text-[10px] font-black uppercase text-slate-500 hover:text-white transition-all"
+                      >
+                        {cat}
+                      </button>
+                    ))}
+                  </div>
                </div>
-               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {companies.map(c => (
-                    <Card key={c.id} className="border border-white/5 bg-black/40 p-5 rounded-3xl hover:border-primary/30 transition-all group">
-                       <div className="flex items-center gap-4 mb-4">
-                          <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-xl font-black text-slate-400 group-hover:bg-primary/20 group-hover:text-primary transition-all">
-                             {c.name[0]}
-                          </div>
-                          <div>
-                             <h3 className="font-black text-white uppercase tracking-tight">{c.name}</h3>
-                             <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{c.contactPerson || "Yetkili Belirtilmedi"}</p>
-                          </div>
-                       </div>
-                       <div className="space-y-2 border-t border-white/5 pt-4">
-                          <div className="flex justify-between items-center text-[11px]">
-                             <span className="text-slate-500 font-bold uppercase">Telefon:</span>
-                             <span className="text-white font-black">{c.phone || "-"}</span>
-                          </div>
-                          <div className="flex justify-between items-center text-[11px]">
-                             <span className="text-slate-500 font-bold uppercase">Bakiye:</span>
-                             <span className="text-emerald-500 font-black">0.00 ₺</span>
-                          </div>
-                       </div>
-                       <div className="flex gap-2 mt-4 pt-4">
-                          <Button variant="ghost" size="sm" className="flex-1 h-9 rounded-xl bg-white/5 text-[10px] font-black uppercase text-slate-400 hover:text-white">Detay</Button>
-                          <Button variant="ghost" size="sm" onClick={() => deleteCompany(c.id)} className="h-9 w-9 rounded-xl bg-white/5 text-slate-400 hover:text-red-500"><Trash2 size={14} /></Button>
-                       </div>
-                    </Card>
-                  ))}
+               
+               <div className="border border-white/5 rounded-2xl bg-black/40 overflow-hidden shadow-2xl">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-white/5 text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] border-b border-white/5">
+                        <th className="py-4 px-6 text-left">ÜRÜN ADI</th>
+                        <th className="py-4 px-4 text-left">TÜR</th>
+                        <th className="py-4 px-4 text-right">ALIŞ FİYATI</th>
+                        <th className="py-4 px-4 text-right">MEVCUT SATIŞ</th>
+                        <th className="py-4 px-4 text-right">ÖNERİLEN (%20)</th>
+                        <th className="py-4 px-6 text-center">İŞLEM</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {products.map(p => (
+                        <tr key={p.id} className="group hover:bg-white/[0.02] transition-all">
+                          <td className="py-3 px-6">
+                            <span className="text-[12px] font-black text-white uppercase">{p.name}</span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="text-[9px] font-black text-slate-500 border border-white/5 bg-white/5 px-2 py-0.5 rounded-full uppercase">{p.type}</span>
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <span className="text-[11px] font-bold text-slate-400">{p.purchasePrice.toFixed(2)} ₺</span>
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <span className="text-[12px] font-black text-white">{Number(p.finalSalePrice).toFixed(2)} ₺</span>
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <span className="text-[11px] font-bold text-emerald-500">{(p.purchasePrice * 1.2).toFixed(2)} ₺</span>
+                          </td>
+                          <td className="py-3 px-6 text-center">
+                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0 rounded-full hover:bg-primary/20 text-slate-500 hover:text-primary"><Edit2 size={14} /></Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                </div>
             </div>
           )}
