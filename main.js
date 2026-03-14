@@ -95,7 +95,7 @@ async function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      additionalArguments: [`--local-ip=${localIP}`],
+      additionalArguments: [`--local-ip=${localIP}`, `--app-version=${app.getVersion()}`],
       preload: path.join(__dirname, 'preload.js'),
     },
     icon: path.join(__dirname, 'public/favicon.ico'),

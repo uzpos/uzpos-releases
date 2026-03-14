@@ -1,6 +1,6 @@
 {
   "name": "uzpos",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "private": true,
   "main": "main.js",
   "scripts": {
@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "electron-dev": "electron .",
-    "dist": "npm run build && electron-builder"
+    "dist": "npm run build && node scripts/prepare-standalone.js && electron-builder"
   },
   "build": {
     "appId": "com.uzpos.app",
